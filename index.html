@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Maker Game! 🎮</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .header {
+    text-align: center;
+    padding: 18px 10px 10px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 3px solid #ffd700;
+  }
+  .header h1 { font-size: 2.2em; color: #ffd700; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
+  .header p { color: #aaf; font-size: 1.1em; margin-top: 4px; }
+
+  /* Tutorial */
+  .tutorial {
+    max-width: 900px; margin: 18px auto; background: rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px 28px; border: 2px solid #ffd700;
+  }
+  .tutorial h2 { color: #ffd700; margin-bottom: 8px; font-size: 1.3em; }
+  .tutorial p, .tutorial li { font-size: 1.05em; line-height: 1.6; color: #ddd; }
+  .tutorial ul { margin-left: 20px; margin-top: 6px; }
+  .tutorial .example-box {
+    background: rgba(0,200,100,0.12); border: 1px solid #0c6; border-radius: 10px;
+    padding: 12px 16px; margin: 10px 0; font-size: 1.05em;
+  }
+  .tutorial .example-box b { color: #5f5; }
+
+  /* Game area */
+  .game-container { max-width: 1100px; margin: 14px auto; padding: 0 12px; }
+
+  /* Round info */
+  .round-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(0,0,0,0.35); border-radius: 12px; padding: 12px 22px; margin-bottom: 14px;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .round-bar .stock-card {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 18px;
+  }
+  .stock-logo { font-size: 2em; }
+  .stock-name { font-size: 1.3em; font-weight: bold; color: #ffd700; }
+  .stock-price { font-size: 1.1em; color: #8f8; }
+  .round-num { font-size: 1.4em; font-weight: bold; color: #ffd700; }
+
+  /* Scoreboard */
+  .scoreboard {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px; margin-bottom: 14px;
+  }
+  .player-score {
+    background: rgba(255,255,255,0.07); border-radius: 12px; padding: 12px 14px;
+    text-align: center; border: 2px solid transparent; transition: 0.3s;
+  }
+  .player-score.you { border-color: #ffd700; background: rgba(255,215,0,0.08); }
+  .player-score .pname { font-size: 1.15em; font-weight: bold; margin-bottom: 4px; }
+  .player-score .cash { color: #8f8; font-size: 1.1em; }
+  .player-score .shares { color: #aaf; font-size: 0.95em; }
+  .player-score .pnl { font-size: 0.95em; margin-top: 2px; }
+  .player-score .pnl.pos { color: #5f5; }
+  .player-score .pnl.neg { color: #f55; }
+
+  /* Action area */
+  .action-area {
+    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px;
+    margin-bottom: 14px; border: 2px solid #557;
+  }
+  .action-area h3 { color: #ffd700; margin-bottom: 12px; font-size: 1.2em; }
+
+  .spread-input {
+    display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .spread-input label { font-size: 1em; color: #bbd; display: block; margin-bottom: 4px; }
+  .spread-input input {
+    width: 130px; padding: 10px 12px; border-radius: 8px; border: 2px solid #557;
+    background: rgba(0,0,0,0.3); color: #fff; font-size: 1.15em; text-align: center;
+  }
+  .spread-input input:focus { border-color: #ffd700; outline: none; }
+  .spread-vis {
+    flex: 1; min-width: 200px; text-align: center; padding: 8px;
+    background: rgba(0,0,0,0.2); border-radius: 8px;
+  }
+  .spread-vis .spread-label { color: #ffd700; font-size: 1.1em; }
+  .spread-vis .spread-val { font-size: 1.5em; font-weight: bold; }
+
+  .btn {
+    padding: 12px 32px; border: none; border-radius: 10px; font-size: 1.15em;
+    cursor: pointer; font-weight: bold; transition: 0.2s; margin: 4px;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .btn-go { background: #ffd700; color: #222; }
+  .btn-skip { background: #557; color: #fff; }
+  .btn-next { background: #0c6; color: #fff; }
+  .btn-restart { background: #c33; color: #fff; }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Order book */
+  .order-book {
+    margin-top: 14px; border-radius: 12px; overflow: hidden;
+    border: 1px solid #446;
+  }
+  .order-book table { width: 100%; border-collapse: collapse; }
+  .order-book th {
+    background: rgba(0,0,0,0.4); padding: 8px 12px; text-align: left; color: #ffd700;
+    font-size: 0.95em;
+  }
+  .order-book td { padding: 7px 12px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.95em; }
+  .order-book tr.you-row { background: rgba(255,215,0,0.1); }
+  .bid-col { color: #5f5; }
+  .ask-col { color: #f55; }
+  .spread-col { color: #ffd700; }
+
+  /* Trade log */
+  .trade-log {
+    background: rgba(0,0,0,0.25); border-radius: 12px; padding: 14px 18px;
+    margin-bottom: 14px; max-height: 220px; overflow-y: auto;
+  }
+  .trade-log h3 { color: #ffd700; margin-bottom: 8px; }
+  .trade-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95em; color: #ccc; }
+  .trade-entry .buy { color: #5f5; }
+  .trade-entry .sell { color: #f55; }
+
+  /* Results */
+  .results {
+    text-align: center; padding: 30px; background: rgba(0,0,0,0.3);
+    border-radius: 16px; border: 3px solid #ffd700;
+  }
+  .results h2 { font-size: 2em; color: #ffd700; margin-bottom: 14px; }
+  .results .final-table { margin: 0 auto; border-collapse: collapse; }
+  .results .final-table th, .results .final-table td {
+    padding: 8px 18px; text-align: center; border-bottom: 1px solid #446;
+  }
+  .results .final-table th { color: #ffd700; }
+  .results .winner { font-size: 1.6em; color: #5f5; margin: 14px 0; }
+
+  .hidden { display: none !important; }
+
+  /* Tooltip */
+  .tip {
+    display: inline-block; background: #ffd700; color: #222; border-radius: 50%;
+    width: 20px; height: 20px; text-align: center; font-size: 0.8em; line-height: 20px;
+    cursor: help; font-weight: bold; margin-left: 4px; position: relative;
+  }
+  .tip:hover::after {
+    content: attr(data-tip); position: absolute; bottom: 28px; left: 50%;
+    transform: translateX(-50%); background: #222; color: #fff; padding: 8px 12px;
+    border-radius: 8px; font-size: 0.85em; white-space: nowrap; z-index: 10;
+    border: 1px solid #ffd700; font-weight: normal;
+  }
+
+  @media (max-width: 700px) {
+    .header h1 { font-size: 1.5em; }
+    .spread-input { flex-direction: column; align-items: stretch; }
+    .spread-input input { width: 100%; }
+    .scoreboard { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Market Maker Game!</h1>
+  <p>Learn how stock trading works — set your prices, make money!</p>
+</div>
+
+<!-- TUTORIAL SCREEN -->
+<div id="tutorial-screen" class="tutorial">
+  <h2>What is a Market Maker?</h2>
+  <p>
+    Imagine you run a <b>lemonade stand</b>, but instead of lemonade, you buy and sell
+    <b>stocks</b> (tiny pieces of big companies like Apple or Google).
+  </p>
+  <ul>
+    <li><b>BID price</b> = the price you're willing to <span style="color:#5f5">BUY</span> a stock for (like saying "I'll pay $148 for Apple stock")</li>
+    <li><b>ASK price</b> = the price you're willing to <span style="color:#f55">SELL</span> a stock for (like saying "I'll sell Apple stock for $152")</li>
+    <li><b>SPREAD</b> = the gap between your Buy and Sell price. This is how you make money!</li>
+  </ul>
+
+  <div class="example-box">
+    <b>Example:</b> Apple stock is worth about <b>$150</b>.<br>
+    You set your BID (buy) at <b>$148</b> and your ASK (sell) at <b>$152</b>.<br>
+    If someone sells to you at $148, then someone else buys from you at $152…<br>
+    You just made <b>$4 profit!</b> That's your spread! 🎉
+  </div>
+
+  <p style="margin-top:10px">
+    <b>But be careful!</b> If you set your prices too far from the real price, nobody will trade with you.
+    If you set them too close, you won't make much money. And if the stock price moves against you,
+    you could lose money on the shares you're holding!
+  </p>
+
+  <h2 style="margin-top:16px">How This Game Works</h2>
+  <ul>
+    <li>There are <b>5 players</b> — you and 4 computer players</li>
+    <li>Each round, a <b>real stock</b> is shown with its current price</li>
+    <li>You set your <b>BID</b> and <b>ASK</b> prices</li>
+    <li>Random traders come and buy/sell from whoever has the best prices</li>
+    <li>After <b>10 rounds</b>, the player with the most money wins!</li>
+    <li>Everyone starts with <b>$10,000</b> cash</li>
+  </ul>
+
+  <div style="text-align:center; margin-top:18px">
+    <button class="btn btn-go" onclick="startGame()" style="font-size:1.3em; padding: 14px 50px;">
+      Let's Play!
+    </button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="game-container hidden">
+  <div class="round-bar">
+    <div class="stock-card">
+      <span class="stock-logo" id="stock-logo"></span>
+      <div>
+        <div class="stock-name" id="stock-name"></div>
+        <div class="stock-price" id="stock-price"></div>
+      </div>
+    </div>
+    <div>
+      <span class="round-num" id="round-num"></span>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard" id="scoreboard"></div>
+
+  <!-- Your action -->
+  <div class="action-area" id="action-area">
+    <h3>Your Turn — Set Your Prices!</h3>
+    <div class="spread-input">
+      <div>
+        <label>Your BID (Buy) Price <span class="tip" data-tip="The price YOU will pay to buy a share">?</span></label>
+        <input type="number" id="bid-input" step="0.50" placeholder="e.g. 148">
+      </div>
+      <div>
+        <label>Your ASK (Sell) Price <span class="tip" data-tip="The price others must pay to buy from you">?</span></label>
+        <input type="number" id="ask-input" step="0.50" placeholder="e.g. 152">
+      </div>
+      <div class="spread-vis">
+        <div class="spread-label">Your Spread</div>
+        <div class="spread-val" id="spread-display">$0.00</div>
+      </div>
+    </div>
+    <div id="input-error" style="color:#f55; margin-bottom:8px; min-height:22px;"></div>
+    <button class="btn btn-go" id="submit-btn" onclick="submitQuotes()">Submit My Prices!</button>
+    <button class="btn btn-skip" onclick="skipRound()">Skip This Round</button>
+  </div>
+
+  <!-- Order book -->
+  <div class="action-area" id="book-area" class="hidden">
+    <h3>Order Book — Everyone's Prices</h3>
+    <div class="order-book" id="order-book"></div>
+    <div style="margin-top: 12px; text-align: center;">
+      <button class="btn btn-next" id="next-btn" onclick="runTrading()">See What Happens!</button>
+    </div>
+  </div>
+
+  <!-- Trade log -->
+  <div class="trade-log" id="trade-log">
+    <h3>Trade Activity</h3>
+    <div id="log-entries"></div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="game-container hidden"></div>
+
+<script>
+// ============ STOCKS ============
+const STOCKS = [
+  { symbol: "AAPL",  name: "Apple",     logo: "🍎", basePrice: 150 },
+  { symbol: "GOOGL", name: "Google",    logo: "🔍", basePrice: 140 },
+  { symbol: "MSFT",  name: "Microsoft", logo: "🪟", basePrice: 420 },
+  { symbol: "AMZN",  name: "Amazon",    logo: "📦", basePrice: 185 },
+  { symbol: "TSLA",  name: "Tesla",     logo: "🚗", basePrice: 250 },
+];
+
+const PLAYER_NAMES = ["You", "Robo-Alex", "Robo-Sam", "Robo-Mia", "Robo-Jake"];
+const STARTING_CASH = 10000;
+const TOTAL_ROUNDS = 10;
+const TRADES_PER_ROUND = 6;
+
+let players, round, currentStock, currentPrice, tradeLogEntries;
+
+// ============ INIT ============
+function startGame() {
+  document.getElementById("tutorial-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.remove("hidden");
+  document.getElementById("results-screen").classList.add("hidden");
+
+  players = PLAYER_NAMES.map((name, i) => ({
+    name,
+    cash: STARTING_CASH,
+    shares: 0,
+    isHuman: i === 0,
+    totalBought: 0,
+    totalSold: 0,
+    trades: 0,
+  }));
+  round = 0;
+  tradeLogEntries = [];
+  nextRound();
+}
+
+// ============ ROUND SETUP ============
+function nextRound() {
+  round++;
+  if (round > TOTAL_ROUNDS) { showResults(); return; }
+
+  // Pick a stock and wiggle price
+  currentStock = STOCKS[Math.floor(Math.random() * STOCKS.length)];
+  const swing = currentStock.basePrice * (Math.random() * 0.06 - 0.03);
+  currentPrice = Math.round((currentStock.basePrice + swing) * 100) / 100;
+
+  document.getElementById("stock-logo").textContent = currentStock.logo;
+  document.getElementById("stock-name").textContent = `${currentStock.name} (${currentStock.symbol})`;
+  document.getElementById("stock-price").textContent = `Fair Value: ~$${currentPrice.toFixed(2)}`;
+  document.getElementById("round-num").textContent = `Round ${round} of ${TOTAL_ROUNDS}`;
+
+  // Reset inputs
+  document.getElementById("bid-input").value = "";
+  document.getElementById("ask-input").value = "";
+  document.getElementById("spread-display").textContent = "$0.00";
+  document.getElementById("input-error").textContent = "";
+  document.getElementById("submit-btn").disabled = false;
+
+  // Show action area, hide book
+  document.getElementById("action-area").classList.remove("hidden");
+  document.getElementById("book-area").classList.add("hidden");
+
+  updateScoreboard();
+}
+
+// ============ SCOREBOARD ============
+function updateScoreboard() {
+  const sb = document.getElementById("scoreboard");
+  sb.innerHTML = players.map((p, i) => {
+    const portfolio = p.cash + p.shares * currentPrice;
+    const pnl = portfolio - STARTING_CASH;
+    const pnlClass = pnl >= 0 ? "pos" : "neg";
+    const pnlSign = pnl >= 0 ? "+" : "";
+    return `
+      <div class="player-score ${p.isHuman ? 'you' : ''}">
+        <div class="pname">${p.isHuman ? '⭐ ' : '🤖 '}${p.name}</div>
+        <div class="cash">💰 $${p.cash.toFixed(2)}</div>
+        <div class="shares">📊 ${p.shares} shares</div>
+        <div class="pnl ${pnlClass}">${pnlSign}$${pnl.toFixed(2)}</div>
+      </div>`;
+  }).join("");
+}
+
+// ============ SPREAD DISPLAY ============
+document.addEventListener("DOMContentLoaded", () => {
+  ["bid-input", "ask-input"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      const bid = parseFloat(document.getElementById("bid-input").value) || 0;
+      const ask = parseFloat(document.getElementById("ask-input").value) || 0;
+      const spread = ask - bid;
+      const el = document.getElementById("spread-display");
+      el.textContent = spread > 0 ? `$${spread.toFixed(2)}` : "—";
+      el.style.color = spread > 0 ? "#5f5" : "#f55";
+    });
+  });
+});
+
+// ============ SUBMIT QUOTES ============
+function submitQuotes() {
+  const bid = parseFloat(document.getElementById("bid-input").value);
+  const ask = parseFloat(document.getElementById("ask-input").value);
+  const errEl = document.getElementById("input-error");
+
+  if (isNaN(bid) || isNaN(ask)) { errEl.textContent = "Please enter both a BID and ASK price!"; return; }
+  if (bid <= 0 || ask <= 0) { errEl.textContent = "Prices must be greater than $0!"; return; }
+  if (bid >= ask) { errEl.textContent = "Your BID must be LESS than your ASK! (Buy low, sell high!)"; return; }
+  if (bid > currentPrice * 1.5 || ask > currentPrice * 2) { errEl.textContent = "Those prices seem way too high!"; return; }
+  if (ask < currentPrice * 0.5) { errEl.textContent = "Those prices seem way too low!"; return; }
+
+  errEl.textContent = "";
+  players[0].bid = bid;
+  players[0].ask = ask;
+
+  // Generate AI quotes
+  for (let i = 1; i < players.length; i++) {
+    const personality = [0.4, 0.7, 1.0, 1.5][i - 1]; // tight to wide
+    const halfSpread = currentPrice * (0.003 + Math.random() * 0.008) * personality;
+    const offset = (Math.random() - 0.5) * currentPrice * 0.005;
+    players[i].bid = Math.round((currentPrice - halfSpread + offset) * 100) / 100;
+    players[i].ask = Math.round((currentPrice + halfSpread + offset) * 100) / 100;
+  }
+
+  document.getElementById("submit-btn").disabled = true;
+  showOrderBook();
+}
+
+function skipRound() {
+  players[0].bid = null;
+  players[0].ask = null;
+
+  for (let i = 1; i < players.length; i++) {
+    const personality = [0.4, 0.7, 1.0, 1.5][i - 1];
+    const halfSpread = currentPrice * (0.003 + Math.random() * 0.008) * personality;
+    const offset = (Math.random() - 0.5) * currentPrice * 0.005;
+    players[i].bid = Math.round((currentPrice - halfSpread + offset) * 100) / 100;
+    players[i].ask = Math.round((currentPrice + halfSpread + offset) * 100) / 100;
+  }
+
+  showOrderBook();
+}
+
+// ============ ORDER BOOK ============
+function showOrderBook() {
+  document.getElementById("action-area").classList.add("hidden");
+  document.getElementById("book-area").classList.remove("hidden");
+
+  const activePlayers = players.filter(p => p.bid != null);
+  activePlayers.sort((a, b) => b.bid - a.bid); // Best bids first
+
+  let html = `<table>
+    <tr><th>Player</th><th>BID (Buy)</th><th>ASK (Sell)</th><th>Spread</th></tr>`;
+  for (const p of activePlayers) {
+    const spread = (p.ask - p.bid).toFixed(2);
+    const isYou = p.isHuman ? ' class="you-row"' : '';
+    html += `<tr${isYou}>
+      <td>${p.isHuman ? '⭐ ' : '🤖 '}${p.name}</td>
+      <td class="bid-col">$${p.bid.toFixed(2)}</td>
+      <td class="ask-col">$${p.ask.toFixed(2)}</td>
+      <td class="spread-col">$${spread}</td>
+    </tr>`;
+  }
+  if (players[0].bid == null) {
+    html += `<tr class="you-row"><td>⭐ You</td><td colspan="3" style="color:#999">Skipped this round</td></tr>`;
+  }
+  html += `</table>`;
+  document.getElementById("order-book").innerHTML = html;
+}
+
+// ============ TRADING SIMULATION ============
+function runTrading() {
+  document.getElementById("next-btn").disabled = true;
+  const logEl = document.getElementById("log-entries");
+  let tradeCount = 0;
+  const activePlayers = players.filter(p => p.bid != null);
+
+  function doTrade() {
+    if (tradeCount >= TRADES_PER_ROUND) {
+      finishRound();
+      return;
+    }
+    tradeCount++;
+
+    // Random trader wants to buy or sell
+    const isBuy = Math.random() > 0.5;
+
+    if (isBuy) {
+      // Trader wants to BUY -> finds the lowest ASK (cheapest seller)
+      const seller = activePlayers.reduce((best, p) =>
+        (!best || p.ask < best.ask) ? p : best, null);
+      if (!seller) { doTrade(); return; }
+
+      // Check if trade is reasonable (trader won't buy if price is too far from fair)
+      if (seller.ask > currentPrice * 1.08) {
+        addLogEntry(`A trader wanted to buy but prices were too high. No deal!`, "");
+      } else {
+        seller.cash += seller.ask;
+        seller.shares -= 1;
+        seller.totalSold++;
+        seller.trades++;
+        addLogEntry(
+          `A trader bought 1 share of ${currentStock.symbol} from `,
+          `${seller.isHuman ? '⭐ You' : '🤖 ' + seller.name} at $${seller.ask.toFixed(2)}`,
+          "sell"
+        );
+      }
+    } else {
+      // Trader wants to SELL -> finds the highest BID (best buyer)
+      const buyer = activePlayers.reduce((best, p) =>
+        (!best || p.bid > best.bid) ? p : best, null);
+      if (!buyer) { doTrade(); return; }
+
+      if (buyer.bid < currentPrice * 0.92) {
+        addLogEntry(`A trader wanted to sell but bids were too low. No deal!`, "");
+      } else {
+        buyer.cash -= buyer.bid;
+        buyer.shares += 1;
+        buyer.totalBought++;
+        buyer.trades++;
+        addLogEntry(
+          `A trader sold 1 share of ${currentStock.symbol} to `,
+          `${buyer.isHuman ? '⭐ You' : '🤖 ' + buyer.name} at $${buyer.bid.toFixed(2)}`,
+          "buy"
+        );
+      }
+    }
+
+    // Small price movement after each trade
+    currentPrice += (Math.random() - 0.5) * currentPrice * 0.004;
+    currentPrice = Math.round(currentPrice * 100) / 100;
+    document.getElementById("stock-price").textContent = `Fair Value: ~$${currentPrice.toFixed(2)}`;
+
+    updateScoreboard();
+    setTimeout(doTrade, 500);
+  }
+
+  doTrade();
+}
+
+function addLogEntry(text, highlight, type) {
+  const logEl = document.getElementById("log-entries");
+  const div = document.createElement("div");
+  div.className = "trade-entry";
+  div.innerHTML = `${text}<span class="${type || ''}">${highlight}</span>`;
+  logEl.prepend(div);
+}
+
+function finishRound() {
+  document.getElementById("next-btn").disabled = false;
+
+  // Liquidate shares at current price for this round's end
+  // (shares carry over but we track P&L based on current fair value)
+
+  addLogEntry(`--- Round ${round} complete! ---`, "", "");
+
+  if (round >= TOTAL_ROUNDS) {
+    document.getElementById("next-btn").textContent = "See Final Results!";
+    document.getElementById("next-btn").onclick = showResults;
+  } else {
+    document.getElementById("next-btn").textContent = "Next Round →";
+    document.getElementById("next-btn").onclick = nextRound;
+  }
+}
+
+// ============ RESULTS ============
+function showResults() {
+  document.getElementById("game-screen").classList.add("hidden");
+  const rs = document.getElementById("results-screen");
+  rs.classList.remove("hidden");
+
+  // Final liquidation: sell all shares at last known price
+  const finalResults = players.map(p => {
+    const portfolio = p.cash + p.shares * currentPrice;
+    const pnl = portfolio - STARTING_CASH;
+    return { ...p, portfolio, pnl };
+  });
+  finalResults.sort((a, b) => b.portfolio - a.portfolio);
+
+  const winner = finalResults[0];
+  const youResult = finalResults.find(p => p.isHuman);
+  const youRank = finalResults.findIndex(p => p.isHuman) + 1;
+
+  let medal = "";
+  if (youRank === 1) medal = "🏆 YOU WON! Amazing market making!";
+  else if (youRank === 2) medal = "🥈 2nd Place! So close!";
+  else if (youRank === 3) medal = "🥉 3rd Place! Not bad!";
+  else medal = `You came in #${youRank}. Keep practicing!`;
+
+  let rows = finalResults.map((p, i) => {
+    const emoji = i === 0 ? "🏆" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : ""));
+    const pnlColor = p.pnl >= 0 ? "#5f5" : "#f55";
+    const pnlSign = p.pnl >= 0 ? "+" : "";
+    const highlight = p.isHuman ? 'style="background:rgba(255,215,0,0.1)"' : '';
+    return `<tr ${highlight}>
+      <td>${emoji} #${i + 1}</td>
+      <td>${p.isHuman ? '⭐ ' : '🤖 '}${p.name}</td>
+      <td>$${p.portfolio.toFixed(2)}</td>
+      <td style="color:${pnlColor}">${pnlSign}$${p.pnl.toFixed(2)}</td>
+      <td>${p.trades}</td>
+    </tr>`;
+  }).join("");
+
+  rs.innerHTML = `
+    <div class="results">
+      <h2>Game Over!</h2>
+      <div class="winner">${medal}</div>
+      <table class="final-table">
+        <tr><th>Rank</th><th>Player</th><th>Portfolio</th><th>Profit/Loss</th><th>Trades</th></tr>
+        ${rows}
+      </table>
+      <p style="margin-top:18px; color:#aaf; font-size:1.05em;">
+        ${youResult.pnl >= 0
+          ? "Great job! You made money as a market maker! The key is setting a good spread and managing your risk."
+          : "Don't worry! Market making is tricky. Try setting tighter spreads closer to the fair price next time."}
+      </p>
+      <h3 style="color:#ffd700; margin-top:20px;">What Did You Learn?</h3>
+      <ul style="text-align:left; max-width:500px; margin:10px auto; color:#ddd; line-height:1.8;">
+        <li><b>Spread</b> = your profit per trade (buy low, sell high)</li>
+        <li><b>Tight spread</b> = more trades but less profit each</li>
+        <li><b>Wide spread</b> = fewer trades but more profit each</li>
+        <li><b>Inventory risk</b> = holding shares when the price drops</li>
+        <li>Real market makers do this thousands of times per second!</li>
+      </ul>
+      <button class="btn btn-go" onclick="startGame()" style="margin-top:18px; font-size:1.2em;">
+        Play Again!
+      </button>
+    </div>`;
+}
+</script>
+
+</body>
+</html>
