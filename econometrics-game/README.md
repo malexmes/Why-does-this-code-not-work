@@ -7,7 +7,7 @@ A no-macro Excel workbook that teaches non-technical marketing teams how the Ana
 | Tab | What it does |
 |---|---|
 | Start here | The detective picture, how to play, two routes (five minutes or thirty), progress tracker |
-| Level 1 to Level 9 | One idea per tab. Regulars, brakes, the sale, the kettle (adstock), the halo, the channel split, the four tests, the next pound, the long game |
+| Level 1 to Level 10 | One idea per tab. Regulars, brakes, the sale, the kettle (adstock), the halo, the channel split, the four tests, the next pound, brand and the long game, Committed Giving |
 | Words | Every term on a three-rung ladder: everyday picture, what it meant in Wave 1, the sentence to say in the room. Four native charts |
 | Under the bonnet | Every weekly number and formula the game uses. Visible on purpose |
 | Room notes (hidden) | Timings, the answer key and the six questions a room will ask |

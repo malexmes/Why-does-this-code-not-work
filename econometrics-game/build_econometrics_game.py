@@ -386,6 +386,7 @@ D = {  # dial cells
     'ch': [L[6] + f'$C${11 + i}' for i in range(5)],
 }
 REVEAL = {i: L[i] + '$C$31' for i in range(1, 8)}
+POUND = "'Start here'!$C$38"
 
 cols = {}
 hdrs = [
@@ -613,12 +614,14 @@ def level_sheet(n, tab_title, sub, look, dials, learned, room, next_text, color,
         for lab, formula, fmt in reveal_lines:
             label(ws, f'B{rr}', lab)
             c = ws[f'C{rr}']
-            c.value = formula
+            c.value = formula.replace('=IF(C31="Yes",', '=IF(AND(C31="Yes",C11<>""),', 1)
             c.font = F_BOLD
             c.alignment = Alignment(horizontal='center')
             if fmt:
                 c.number_format = fmt
             rr += 1
+    label(ws, 'D31', 'The answer only appears once you have typed a first number.')
+    ws['D31'].font = F_SMALL
     header(ws, next_row, 'Next')
     text_row(ws, next_row + 1, next_text)
     if extra:
@@ -765,7 +768,7 @@ def chart_l4(ws):
 
 def extra_l4(ws):
     label(ws, 'B13', 'That is this much sponsorship income for every £1 spent', bold=False)
-    ws['C13'] = f'=IF(C11="","",C11*90/1000)'
+    ws['C13'] = f'=IF(C11="","",C11*{POUND}/1000)'
     ws['C13'].number_format = '"£"0.00'
     ws['C13'].font = F_BOLD
     ws['C13'].alignment = Alignment(horizontal='center')
@@ -837,7 +840,13 @@ def extra_l5(ws):
     ws['C44'].number_format = '#,##0'
     ws['C44'].font = F_BOLD
     ws['C44'].alignment = Alignment(horizontal='center')
-    hint(ws, 'D44', 'Based on 2025 spend of about £3.2m and your halo number. Sponsorship at £90 a sign-up.')
+    hint(ws, 'D44', 'Based on 2025 spend of about £3.2m and your halo number.')
+    label(ws, 'B45', 'Sponsorship income that would go with it, £k')
+    ws['C45'] = f'=IF(C44="","",C44*{POUND}/1000)'
+    ws['C45'].number_format = '"£"#,##0"k"'
+    ws['C45'].font = F_BOLD
+    ws['C45'].alignment = Alignment(horizontal='center')
+    ws.row_dimensions[45].height = 30
     for rr in (41, 42, 43, 44):
         ws.row_dimensions[rr].height = 30
 
@@ -1070,7 +1079,7 @@ for j, (name, spend, roi, ap_plan) in enumerate(channels_2025):
     ws8[f'H{rr}'] = f'=IF($C$26="AP\'s plan",M{rr},MIN(G{rr},MAX(F{rr},IF(E{rr}="",0,E{rr}))))'
     # sign-ups = K * sqrt(spend); K set so that the 2025 plan reproduces Wave 1's return
     ws8[f'I{rr}'] = f'=IF(H{rr}<=0,0,(D{rr}*C{rr}*1000/90)/SQRT(C{rr})*SQRT(H{rr}))'
-    ws8[f'J{rr}'] = f'=I{rr}*90/1000'
+    ws8[f'J{rr}'] = f'=I{rr}*{POUND}/1000'
     ws8[f'K{rr}'] = f'=IF(H{rr}<=0,0,J{rr}/H{rr})'
     ws8[f'L{rr}'] = f'=0.5*K{rr}'
     ws8[f'M{rr}'] = round(ap_plan / 1000)
@@ -1113,13 +1122,13 @@ label(ws8, 'B27', 'Budget check')
 ws8['C27'] = f'=IF(ABS(H{tot}-C{tot})<=10,"Same total. Good.",IF(H{tot}>C{tot},"Over budget by £"&TEXT(H{tot}-C{tot},"#,##0")&"k","Under budget by £"&TEXT(C{tot}-H{tot},"#,##0")&"k"))'
 ws8.merge_cells('C27:F27')
 label(ws8, 'B28', 'Sign-ups from the 2025 plan')
-ws8['C28'] = f'=SUMPRODUCT(D{first}:D{last},C{first}:C{last})*1000/90'
+ws8['C28'] = f'=SUMPRODUCT(D{first}:D{last},C{first}:C{last})*1000/90'  # Wave 1 baseline at AP's £90
 label(ws8, 'B29', 'Sign-ups from the plan in use')
 ws8['C29'] = f'=I{tot}'
 label(ws8, 'B30', 'Extra sign-ups you found')
 ws8['C30'] = '=C29-C28'
 label(ws8, 'B31', 'Extra income, £k')
-ws8['C31'] = '=C30*90/1000'
+ws8['C31'] = f'=C30*{POUND}/1000'
 label(ws8, 'B32', 'This level')
 ws8['C32'] = '=IF(AND(C30>=1000,ABS(H23-C23)<=10),"Level done. Move on.",IF(C30>0,"Keep going: find 1,000 more","Keep going"))'
 ws8.merge_cells('C32:F32')
@@ -1142,7 +1151,7 @@ text_row(ws8, 37, "Posters returned 60p per £1 in the short term, the weakest c
 header(ws8, 39, 'Say this in the room')
 text_row(ws8, 40, 'The average pound returned £1.66 but the last pound returned 82p. Moving money between channels is worth about £1.1m before we add a single pound.', font=F_BOLD, fill=FILL_ACCENT, merge_to='L')
 header(ws8, 42, 'Next')
-text_row(ws8, 43, 'Go to Level 9. The long game: brand, consideration and Committed Giving.', merge_to='L')
+text_row(ws8, 43, 'Go to Level 9. The long game: brand and consideration. Then Level 10 for Committed Giving.', merge_to='L')
 bar = BarChart()
 bar.type = 'col'
 bar.title = 'Spend by channel, £ thousands: the 2025 plan against the plan in use'
@@ -1165,12 +1174,12 @@ ws8.add_chart(bar, 'B45')
 ws8.freeze_panes = 'A4'
 LEVEL_META[8] = ws8
 
-# ---- Level 9: the long game
+# ---- Level 9: Brand, the long game
 ws9 = wb.create_sheet('Level 9')
 ws9.sheet_properties.tabColor = 'E60078'
 set_widths(ws9, {'A': 2, 'B': 46, 'C': 17, 'D': 30, 'E': 2})
 title(ws9, 'Level 9: Some of today\'s sign-ups come from adverts people saw years ago',
-      'The long game. Brand consideration, and why Committed Giving looks so cheap on paper.')
+      'Brand, the long game. Consideration, brand equity and the long-term multiplier.')
 header(ws9, 4, '1. Look at the picture')
 text_row(ws9, 5, "The line on the picture is brand consideration: the share of people who say they would consider supporting Cancer Research UK. It moves slowly. The bars are everything we spent on media each week, across every cause.")
 text_row(ws9, 6, "Wave 1 traced 18.8% of today's consideration back to past media. That stock is our brand equity. It is slipping by about a quarter of a point a year.")
@@ -1178,65 +1187,65 @@ text_row(ws9, 7, "Consideration then turns into sign-ups over the following thre
 header(ws9, 9, '2. Try: the long-term multiplier')
 label(ws9, 'B11', 'Extra long-term media, £ millions a year')
 input_cell(ws9, 'C11', 1, fmt='"£"0.0"m"')
-hint(ws9, 'D11', 'Wave 1: each extra £1m lifts consideration by about 0.4 points, over one to two years.')
+hint(ws9, 'D11', 'Wave 1: each extra £1m lifts consideration by about 0.4 points, over one to two years. Only spend above today\'s level counts.')
 label(ws9, 'B12', 'Consideration gained, percentage points')
 ws9['C12'] = '=IF(C11="","",C11*0.4)'
 ws9['C12'].number_format = '0.0'
 label(ws9, 'B13', 'Against the yearly drift of')
 ws9['C13'] = -0.25
 ws9['C13'].number_format = '0.00'
-hint(ws9, 'D13', 'Consideration falls about 0.25 points a year without extra investment.')
+hint(ws9, 'D13', 'Consideration falls about 0.25 points a year without extra investment. Your extra £1m roughly covers a year and a half of drift.')
 label(ws9, 'B14', 'Race for Life media: £1 returns in the short term')
 ws9['C14'] = 1.66
 ws9['C14'].number_format = '"£"0.00'
 label(ws9, 'B15', 'Race for Life media: £1 returns over three years')
 ws9['C15'] = '=C14*1.21'
 ws9['C15'].number_format = '"£"0.00'
-hint(ws9, 'D15', 'Wave 1 multiplier 1.21 for Race for Life, 1.04 for Committed Giving. Posters and TV carry the biggest long-term share.')
+hint(ws9, 'D15', 'Wave 1 multiplier 1.21 for Race for Life, 1.04 for Committed Giving. The multipliers come from the brand consideration model.')
 for rr in range(11, 16):
     ws9[f'C{rr}'].font = F_BOLD if rr != 11 else F_INPUT
     ws9[f'C{rr}'].alignment = Alignment(horizontal='center')
     ws9.row_dimensions[rr].height = 30
-header(ws9, 17, '3. Committed Giving: why 9p per £1 is not the whole story')
-text_row(ws9, 18, "Wave 1 also modelled new Committed Givers, the people who start a monthly gift. Marketing drove about 73% of them. Yet the return looks tiny: 9p to 20p per £1.")
-text_row(ws9, 19, "The reason is what the model counts. It counts only brand new givers, at roughly £300 of income each in the modelled window. It does not count the years of giving that follow, and it does not count the givers that adverts stop from leaving.")
-cog_hdr = ['', 'FY23/24', 'FY24/25', 'FY25/26 to Oct']
-for j, h in enumerate(cog_hdr):
-    c = ws9.cell(row=21, column=2 + j, value=h)
+header(ws9, 17, '3. Check: which channels carry the most long-term weight')
+text_row(ws9, 18, "Wave 1's 2025 returns per £1 by channel, short term and long term. Posters look weakest in the short term and carry the biggest long-term share. Every channel earns a little more once the slow brand effect is counted.")
+lt_hdr = ['Channel', 'Short term £', 'Long term £', 'Three-year total £', 'Multiplier']
+for j, h in enumerate(lt_hdr):
+    c = ws9.cell(row=19, column=2 + j, value=h)
     c.font = F_WHITE
     c.fill = FILL_HEAD
     c.alignment = CENTER
-cog_rows = [('New Committed Givers', 12006, 7622, 2993), ('Of which marketing drove', 8568, 5158, 2822),
-            ('Committed Giving media spend, £m', 8.4, 4.1, 1.2), ('Return per £1 on that spend, short term', 0.18, 0.14, 0.20)]
-for j, (lab, a, b, c) in enumerate(cog_rows):
-    rr = 22 + j
-    ws9[f'B{rr}'] = lab
-    ws9[f'B{rr}'].font = F_BODY
-    for colx, v in zip('CDE', (a, b, c)):
-        ws9[f'{colx}{rr}'] = v
-        ws9[f'{colx}{rr}'].number_format = '"£"0.00' if 'Return' in lab else ('"£"0.0"m"' if '£m' in lab else '#,##0')
-        ws9[f'{colx}{rr}'].alignment = Alignment(horizontal='center')
-        ws9[f'{colx}{rr}'].font = F_BODY
-ws9.column_dimensions['E'].width = 16
-label(ws9, 'B27', 'Your assumption: years a new giver keeps giving')
-input_cell(ws9, 'C27', 3, fmt='0')
-hint(ws9, 'D27', 'Not a Wave 1 finding. Your own guess, to see what it does to the number.')
-label(ws9, 'B28', 'FY25/26 return per £1 if every year counted the same')
-ws9['C28'] = '=IF(C27="","",E25*C27)'
-ws9['C28'].number_format = '"£"0.00'
-ws9['C28'].font = F_BOLD
-ws9['C28'].alignment = Alignment(horizontal='center')
-hint(ws9, 'D28', 'A simple multiplication, to show why AP say the Committed Giving return is understated. Wave 2 will measure it properly.')
-ws9.row_dimensions[27].height = 30
-ws9.row_dimensions[28].height = 30
-header(ws9, 30, '4. What you just learned')
-text_row(ws9, 31, "Adverts do two jobs. They raise sign-ups now, and they raise the share of people who would consider us at all. Economists call the second job brand equity, and Wave 1 measures it through consideration.")
-text_row(ws9, 32, "Counting the long-term effect takes Race for Life media from £1.66 to £2.01 per pound. Committed Giving looks cheap because the model only counts the first gift of brand new givers.")
-text_row(ws9, 33, "Cutting Committed Giving media by nearly half cost about 23% of new givers in FY25/26, and inflation cost about the same again. Two separate causes, one falling line.")
-header(ws9, 35, 'Say this in the room')
-text_row(ws9, 36, 'Nearly a fifth of the people who consider us do so because of adverts they saw years ago. The short-term return is the floor, not the ceiling.', font=F_BOLD, fill=FILL_ACCENT)
-header(ws9, 38, 'Next')
-text_row(ws9, 39, 'You have built the whole model. Go to Words for the ladder of every term, or back to Start here to see your progress.')
+    c.border = BOX
+ws9.column_dimensions['E'].width = 18
+ws9.column_dimensions['F'].width = 12
+lt_rows = [('All Race for Life media', 1.66, 0.35, 1.21), ('Posters (OOH)', 0.54, 0.07, 1.14), ('DRTV', 1.95, 0.15, 1.08),
+           ('Online video (VOD)', 1.86, 0.09, 1.05), ('Paid social', 1.59, 0.07, 1.04), ('Regional', 1.71, 0.08, 1.05),
+           ('Display', 1.74, 0.11, 1.06), ('Digital audio', 1.71, 0.08, 1.05), ('Radio', 1.75, 0.09, 1.05), ('YouTube', 1.85, 0.09, 1.05),
+           ('All Committed Giving media', 0.20, 0.01, 1.04)]
+for j, (nm, st, lt, mult) in enumerate(lt_rows):
+    rr = 20 + j
+    ws9[f'B{rr}'] = nm
+    ws9[f'C{rr}'] = st
+    ws9[f'D{rr}'] = lt
+    ws9[f'E{rr}'] = f'=C{rr}+D{rr}'
+    ws9[f'F{rr}'] = mult
+    for colx in 'BCDEF':
+        ws9[f'{colx}{rr}'].font = F_BOLD if j in (0, 10) else F_BODY
+        ws9[f'{colx}{rr}'].border = BOX
+        if colx in 'CDE':
+            ws9[f'{colx}{rr}'].number_format = '"£"0.00'
+        if colx == 'F':
+            ws9[f'{colx}{rr}'].number_format = '0.00"x"'
+        if colx != 'B':
+            ws9[f'{colx}{rr}'].alignment = Alignment(horizontal='center')
+text_row(ws9, 31, "Source: Wave 1 results, 2025 long-term ROIs for Race for Life (multipliers measured from the brand consideration model) and Committed Giving. Race for Life's total multiplier is higher than any single channel because it carries over from Race for Life TV, which did not run in 2025.", font=F_SMALL)
+header(ws9, 33, '4. What you just learned')
+text_row(ws9, 34, "Adverts do two jobs. They raise sign-ups now, and they raise the share of people who would consider us at all. Economists call the second job brand equity, and Wave 1 measures it through consideration.")
+text_row(ws9, 35, "Counting the long-term effect takes Race for Life media from £1.66 to £2.01 per pound. The long-term share is understated: the model cannot see Legacy income or existing givers, and Race for Life's base is close to zero, so consideration has little to lift.")
+text_row(ws9, 36, "A bigger brand also makes every other advert work harder. That is why the Committed Giving and Legacy halos in Level 5 exist at all.")
+header(ws9, 38, 'Say this in the room')
+text_row(ws9, 39, 'Nearly a fifth of the people who consider us do so because of adverts they saw years ago. The short-term return is the floor, not the ceiling.', font=F_BOLD, fill=FILL_ACCENT)
+header(ws9, 41, 'Next')
+text_row(ws9, 42, 'Go to Level 10. Committed Giving, and why 9p per £1 is not the whole story.')
 bar = BarChart()
 bar.type = 'col'
 bar.title = 'All CRUK media spend each week, £ thousands (bars) and brand consideration (line)'
@@ -1270,16 +1279,185 @@ line.y_axis.delete = False
 line.y_axis.scaling.min = 0.4
 line.y_axis.scaling.max = 0.65
 bar += line
-ws9.add_chart(bar, 'F4')
-ch = LineChart()
-base_chart(ch, 'New Committed Givers each week, real figures', y_title='New givers a week', height=9)
-ch.add_data(Reference(wb[ENG], min_col=C['Real new Committed Givers'], min_row=R0 - 1, max_row=R1), titles_from_data=True)
-name_series(ch.series[0], 'New Committed Givers a week')
-line_style(ch.series[0], '00007E', width_pt=1.25)
-ch.set_categories(Reference(wb[ENG], min_col=1, min_row=R0, max_row=R1))
-ws9.add_chart(ch, 'F27')
+ws9.add_chart(bar, 'H4')
+ch = BarChart()
+ch.type = 'col'
+ch.grouping = 'stacked'
+ch.overlap = 100
+ch.title = 'Return per £1 by Race for Life channel in 2025: short term (cyan) and the long-term top-up (magenta)'
+ch.style = 2
+ch.width = 24
+ch.height = 10
+ch.legend.position = 'b'
+ch.y_axis.number_format = '"£"0.00'
+ch.y_axis.majorGridlines = None
+ch.x_axis.delete = False
+ch.y_axis.delete = False
+ch.add_data(Reference(ws9, min_col=3, min_row=19, max_row=29), titles_from_data=True)
+ch.add_data(Reference(ws9, min_col=4, min_row=19, max_row=29), titles_from_data=True)
+ch.set_categories(Reference(ws9, min_col=2, min_row=20, max_row=29))
+ch.series[0].graphicalProperties.solidFill = CYAN
+ch.series[1].graphicalProperties.solidFill = MAGENTA
+name_series(ch.series[0], 'Short term, up to six months')
+name_series(ch.series[1], 'Long term, over three years')
+ws9.add_chart(ch, 'H27')
 ws9.freeze_panes = 'A4'
 LEVEL_META[9] = ws9
+
+# ---- Level 10: Committed Giving
+ws10 = wb.create_sheet('Level 10')
+ws10.sheet_properties.tabColor = 'E60078'
+set_widths(ws10, {'A': 2, 'B': 46, 'C': 17, 'D': 17, 'E': 17, 'F': 30, 'G': 2})
+title(ws10, 'Level 10: Committed Giving looks like 9p per £1 because the model only counts the first gift',
+      'Committed Giving. What the model saw, what it could not see, and what the 2025 cut cost.')
+header(ws10, 4, '1. Look at the picture')
+text_row(ws10, 5, "Committed Givers are people who start a monthly gift. Wave 1 modelled how many new ones we won each week, the pink line on the lower picture. The number is small: a few hundred a week, falling through 2025.", merge_to='F')
+text_row(ws10, 6, "Marketing drove about 73% of new givers across the three years. In FY25/26 it was 94%, because inflation ate the base and the adverts were nearly all that was left.", merge_to='F')
+text_row(ws10, 7, "Yet the return looks tiny: 9p to 20p per £1. Read the whole level before you judge it.", merge_to='F')
+header(ws10, 9, '2. Look: three years of new givers')
+cog_hdr = ['', 'FY23/24', 'FY24/25', 'FY25/26 to Oct', 'What it means']
+for j, h in enumerate(cog_hdr):
+    c = ws10.cell(row=10, column=2 + j, value=h)
+    c.font = F_WHITE
+    c.fill = FILL_HEAD
+    c.alignment = CENTER
+    c.border = BOX
+cog_rows = [('New Committed Givers', 12006, 7622, 2993, 'FY25/26 is seven months, April to October.'),
+            ('Of which marketing drove', 8568, 5158, 2822, 'Direct adverts plus the halo from Brand, Race for Life, Legacy, Social Challenges and health campaigns.'),
+            ('Share driven by marketing', '=C12/C11', '=D12/D11', '=E12/E11', 'Without marketing in FY23/24, 8,568 new givers would not have happened.'),
+            ('Committed Giving media spend, £m', 8.4, 4.1, 1.2, 'Direct Committed Giving media only. Nearly quartered.'),
+            ('Return per £1 on that spend, short term', 0.18, 0.14, 0.20, 'Income from the new givers in the modelled window only.'),
+            ('Share of media-driven givers that came via halo', 0.33, 0.62, 0.72, 'Less direct spend means more reliance on other causes\' adverts.')]
+for j, (lab, a, b, c, why) in enumerate(cog_rows):
+    rr = 11 + j
+    ws10[f'B{rr}'] = lab
+    ws10[f'B{rr}'].font = F_BODY
+    for colx, v in zip('CDE', (a, b, c)):
+        ws10[f'{colx}{rr}'] = v
+        ws10[f'{colx}{rr}'].number_format = '0%' if 'Share' in lab else ('"£"0.00' if 'Return' in lab else ('"£"0.0"m"' if '£m' in lab else '#,##0'))
+        ws10[f'{colx}{rr}'].alignment = Alignment(horizontal='center')
+        ws10[f'{colx}{rr}'].font = F_BODY
+    hint(ws10, f'F{rr}', why)
+    for colx in 'BCDEF':
+        ws10[f'{colx}{rr}'].border = BOX
+    ws10.row_dimensions[rr].height = 30
+text_row(ws10, 17, "Source: Wave 1 results, Committed Giving business drivers and short-term performance. Halo share is media-driven income from other causes' adverts divided by all media-driven income.", font=F_SMALL, merge_to='F')
+header(ws10, 19, '3. Try: what drove the 23% fall in FY25/26, and what a further cut would do')
+wf_hdr = ['Cause (FY24/25 to FY25/26, April to October)', 'Change in new givers', 'Share of the fall', 'In plain words']
+for j, h in enumerate(wf_hdr):
+    c = ws10.cell(row=20, column=2 + j, value=h)
+    c.font = F_WHITE
+    c.fill = FILL_HEAD
+    c.alignment = CENTER
+    c.border = BOX
+ws10.merge_cells('E20:F20')
+waterfall = [('Inflation (the economy)', -904, 'Inflation up 4%. The biggest single cause, and outside our control.'),
+             ('Committed Giving adverts cut by nearly half', -307, 'Second biggest. The one we chose.'),
+             ('Brand adverts cut by nearly 10%', -107, 'Brand adverts feed Committed Giving too.'),
+             ('Race for Life adverts cut by 21%', -102, 'The halo runs both ways.'),
+             ('Brand consideration slipped 0.5%', -29, 'Small but real.'),
+             ('Legacy adverts almost seven times higher', 41, 'A little help back.'),
+             ('Less interest in Macmillan', 46, 'A competitor effect the model could see.'),
+             ('Health campaign adverts', 91, 'A halo from a campaign that never mentions giving.'),
+             ('Social Challenges adverts up 56%', 337, 'The best replacement for the paid social we cut.')]
+for j, (lab, v, why) in enumerate(waterfall):
+    rr = 21 + j
+    ws10[f'B{rr}'] = lab
+    ws10[f'C{rr}'] = v
+    ws10[f'C{rr}'].number_format = '+#,##0;-#,##0'
+    ws10[f'D{rr}'] = f'=C{rr}/3996'
+    ws10[f'D{rr}'].number_format = '+0.0%;-0.0%'
+    ws10[f'E{rr}'] = why
+    ws10[f'E{rr}'].font = F_SMALL
+    ws10[f'E{rr}'].alignment = Alignment(wrap_text=True, vertical='center')
+    ws10.merge_cells(f'E{rr}:F{rr}')
+    for colx in 'BCD':
+        ws10[f'{colx}{rr}'].font = F_BODY
+        ws10[f'{colx}{rr}'].border = BOX
+        if colx != 'B':
+            ws10[f'{colx}{rr}'].alignment = Alignment(horizontal='center')
+    ws10.row_dimensions[rr].height = 20
+ws10['B30'] = 'New givers, FY24/25 to October'
+ws10['C30'] = 3996
+ws10['B31'] = 'New givers, FY25/26 to October'
+ws10['C31'] = '=C30+SUM(C21:C29)'
+ws10['D31'] = '=C31/C30-1'
+ws10['D31'].number_format = '+0%;-0%'
+hint(ws10, 'E31', "Wave 1 reports 3,061, a 23% fall. The causes above sum to it within rounding.")
+ws10.merge_cells('E31:F31')
+for rr in (30, 31):
+    ws10[f'B{rr}'].font = F_BOLD
+    ws10[f'C{rr}'].font = F_BOLD
+    ws10[f'C{rr}'].number_format = '#,##0'
+    ws10[f'C{rr}'].alignment = Alignment(horizontal='center')
+    ws10[f'D{rr}'].alignment = Alignment(horizontal='center')
+    ws10[f'D{rr}'].font = F_BOLD
+label(ws10, 'B33', 'Now try: cut Committed Giving adverts next year by a further')
+input_cell(ws10, 'C33', 25, fmt='0"%"')
+hint(ws10, 'D33', 'Type a percentage of the FY25/26 spend.')
+ws10.merge_cells('D33:F33')
+label(ws10, 'B34', 'New givers that would go with it, over the same seven months')
+ws10['C34'] = '=IF(C33="","",ROUND(C33/50*307,0))'
+hint(ws10, 'D34', 'Wave 1 saw a 50% cut cost 307 new givers. This scales that in a straight line, so treat it as a guide.')
+ws10.merge_cells('D34:F34')
+label(ws10, 'B35', 'Income lost in the modelled window, £k')
+ws10['C35'] = '=IF(C34="","",C34*300/1000)'
+hint(ws10, 'D35', 'About £300 per new giver in the window, Wave 1\'s conversion.')
+ws10.merge_cells('D35:F35')
+label(ws10, 'B36', 'Your assumption: years a new giver keeps giving')
+input_cell(ws10, 'C36', 3, fmt='0')
+hint(ws10, 'D36', 'Not a Wave 1 finding. Your own guess, to see what it does to the number.')
+ws10.merge_cells('D36:F36')
+label(ws10, 'B37', 'Income lost if every year counted the same, £k')
+ws10['C37'] = '=IF(OR(C35="",C36=""),"",C35*C36)'
+label(ws10, 'B38', 'FY25/26 return per £1 on the same assumption')
+ws10['C38'] = '=IF(C36="","",E15*C36)'
+ws10['C38'].number_format = '"£"0.00'
+hint(ws10, 'D38', 'A simple multiplication, to show why AP say the Committed Giving return is understated. Wave 2 is meant to measure it properly.')
+ws10.merge_cells('D38:F38')
+for rr in range(33, 39):
+    ws10.row_dimensions[rr].height = 30
+    if rr not in (33, 36):
+        ws10[f'C{rr}'].font = F_BOLD
+        ws10[f'C{rr}'].alignment = Alignment(horizontal='center')
+        if rr in (34,):
+            ws10[f'C{rr}'].number_format = '#,##0'
+        if rr in (35, 37):
+            ws10[f'C{rr}'].number_format = '"£"#,##0"k"'
+header(ws10, 40, '4. What you just learned')
+text_row(ws10, 41, "The model counts only brand new givers, at roughly £300 of income each in the modelled window. It does not count the years of giving that follow, and it does not count the givers that adverts stop from leaving. That is why 9p is a floor.", merge_to='F')
+text_row(ws10, 42, "Cutting Committed Giving media by nearly half cost about 23% of new givers in FY25/26, and inflation cost about the same again. Two separate causes, one falling line. Economists call the first a controllable driver and the second a base driver.", merge_to='F')
+text_row(ws10, 43, "Less direct spend means more reliance on other causes' adverts. In FY25/26 nearly three quarters of media-driven givers came via the halo, mostly from Brand and Social Challenges.", merge_to='F')
+header(ws10, 45, 'Say this in the room')
+text_row(ws10, 46, 'Committed Giving media shows 9p per pound because the model only counts the first gift of brand new givers. The years of giving that follow, and the churn it prevents, are not in the number yet.', font=F_BOLD, fill=FILL_ACCENT, merge_to='F')
+header(ws10, 48, 'Next')
+text_row(ws10, 49, 'You have built the whole model. Go to Words for the ladder of every term, or back to Start here to see your progress.', merge_to='F')
+ch = BarChart()
+ch.type = 'bar'
+ch.title = 'Why new givers fell 23% in FY25/26: change in new givers by cause'
+ch.style = 2
+ch.width = 24
+ch.height = 10
+ch.legend = None
+ch.y_axis.number_format = '#,##0'
+ch.y_axis.majorGridlines = None
+ch.x_axis.delete = False
+ch.y_axis.delete = False
+ch.add_data(Reference(ws10, min_col=3, min_row=20, max_row=29), titles_from_data=True)
+ch.set_categories(Reference(ws10, min_col=2, min_row=21, max_row=29))
+ch.series[0].graphicalProperties.solidFill = MAGENTA
+ch.series[0].invertIfNegative = False
+ch.x_axis.tickLblPos = 'low'
+ws10.add_chart(ch, 'H4')
+ch2 = LineChart()
+base_chart(ch2, 'New Committed Givers each week, real figures', y_title='New givers a week', height=9)
+ch2.add_data(Reference(wb[ENG], min_col=C['Real new Committed Givers'], min_row=R0 - 1, max_row=R1), titles_from_data=True)
+name_series(ch2.series[0], 'New Committed Givers a week')
+line_style(ch2.series[0], MAGENTA, width_pt=1.25)
+ch2.set_categories(Reference(wb[ENG], min_col=1, min_row=R0, max_row=R1))
+ws10.add_chart(ch2, 'H26')
+ws10.freeze_panes = 'A4'
+LEVEL_META[10] = ws10
 
 # ----------------------------------------------------------------------------------
 # 6. Words (glossary) with four pictures
@@ -1359,6 +1537,9 @@ glossary = [
     ('Brand equity (Level 9)', 'Reputation. It keeps working after you stop paying for it, and it drains slowly if you stop.',
      '18.8% of today\'s consideration traces back to past media. It slips 0.25 points a year. An extra £1m lifts it about 0.4 points.',
      'Nearly a fifth of the people who consider us do so because of adverts they saw years ago.'),
+    ('Base driver (Level 10)', 'The weather for a farmer. It moves the harvest and nobody on the farm controls it.',
+     'Inflation cost Committed Giving about 900 new givers in FY25/26, as much as the advertising cut. Price, seasonality and competitors are base drivers too.',
+     'Inflation and the advertising cut each cost about a quarter of new givers. One we chose, one we did not.'),
     ('Long-term multiplier (Level 9)', 'The slow second job of an advert: making more people consider us at all, which turns into sign-ups over three years.',
      '1.21 for Race for Life media (£1.66 becomes £2.01) and 1.04 for Committed Giving. Posters and TV carry the biggest share.',
      'Counting the long-term effect takes Race for Life media from £1.66 to £2.01 per pound.'),
@@ -1525,7 +1706,7 @@ text_row(ws0, 10, "1. Type only in the blue cells. 2. Each level adds one block 
 header(ws0, 12, 'Two routes')
 for j, (lab, txt) in enumerate([
         ('Five minutes', 'Level 1, then Level 4, then the What if box on Level 5, then Level 8. You will leave knowing the base, the kettle, the halo and the last pound.'),
-        ('Thirty minutes', 'Levels 1 to 9 in order. Each one builds on the last. Finish with Words, which names every term you have already understood.')]):
+        ('Thirty minutes', 'Levels 1 to 10 in order. Each one builds on the last. Finish with Words, which names every term you have already understood.')]):
     label(ws0, f'B{13 + j}', lab, bold=True)
     text_row(ws0, 13 + j, txt, merge_to=None)
     ws0[f'C{13 + j}'].value = txt
@@ -1550,7 +1731,8 @@ progress = [
     (6, 'Who sang louder: the channel split', 'Multicollinearity', "='Level 6'!C22"),
     (7, 'Is it any good: four tests', 'R squared, MAPE, holdout', "='Level 7'!C17"),
     (8, 'The next pound: the budget game', 'Marginal return', "='Level 8'!C32"),
-    (9, 'The long game: brand and Committed Giving', 'Brand equity', 'Read and try'),
+    (9, 'The long game: brand and consideration', 'Brand equity', 'Read and try'),
+    (10, 'Committed Giving: why 9p is a floor', 'Base driver', 'Read and try'),
 ]
 for j, (lv, what, word, f) in enumerate(progress):
     rr = 18 + j
@@ -1567,15 +1749,20 @@ for j, (lv, what, word, f) in enumerate(progress):
     ws0[f'E{rr}'].font = F_BOLD
     ws0[f'E{rr}'].alignment = Alignment(horizontal='center', wrap_text=True)
     ws0.row_dimensions[rr].height = 20
-verdict_formats(ws0, 'E18:E26')
-label(ws0, 'B28', 'Levels done', bold=True)
-ws0['C28'] = '=COUNTIF(E18:E26,"Level done*")&" of 8"'
-ws0['C28'].font = F_BIG
-header(ws0, 30, 'Say this in the room')
-text_row(ws0, 31, 'Econometrics is a detective reading three years of weekly receipts to work out which pounds raised the sign-ups. It can only see what changed.', font=F_BOLD, fill=FILL_ACCENT, merge_to='E')
-header(ws0, 33, 'Where the numbers come from')
-text_row(ws0, 34, "Analytic Partners, CRUK Wave 1 Econometrics Results (July 2026) and Wave 1 Methodology and Model Documentation (17 July 2026). The weekly figures are AP's own, read from the charts in the results deck: real sign-ups, spend by channel and product, and AP's weekly decomposition of sign-ups by driver, January 2023 to October 2025. The game's answer key is fitted to that decomposition. Sponsorship income is counted at about £90 per sign-up, as AP do.", merge_to='E', font=F_SMALL)
-text_row(ws0, 35, "Built on the Analytic Partners training game. Under the bonnet shows every weekly number and every formula. Words explains every term. Nothing is hidden except the answer key, so the game stays a game.", merge_to='E', font=F_SMALL)
+verdict_formats(ws0, 'E18:E27')
+label(ws0, 'B29', 'Levels done', bold=True)
+ws0['C29'] = '=COUNTIF(E18:E27,"Level done*")&" of 8 scored levels"'
+ws0['C29'].font = F_BIG
+header(ws0, 31, 'Say this in the room')
+text_row(ws0, 32, 'Econometrics is a detective reading three years of weekly receipts to work out which pounds raised the sign-ups. It can only see what changed.', font=F_BOLD, fill=FILL_ACCENT, merge_to='E')
+header(ws0, 34, 'Where the numbers come from')
+text_row(ws0, 35, "Analytic Partners, CRUK Wave 1 Econometrics Results (July 2026) and Wave 1 Methodology and Model Documentation (17 July 2026). The weekly figures are AP's own, read from the charts in the results deck: real sign-ups, spend by channel and product, and AP's weekly decomposition of sign-ups by driver, January 2023 to October 2025. The game's answer key is fitted to that decomposition. Sponsorship income is counted at about £90 per sign-up, as AP do.", merge_to='E', font=F_SMALL)
+text_row(ws0, 36, "Built on the Analytic Partners training game. Under the bonnet shows every weekly number and every formula. Words explains every term. Nothing is hidden except the answer key, so the game stays a game.", merge_to='E', font=F_SMALL)
+label(ws0, 'B38', 'Sponsorship income per Race for Life sign-up, £', bold=True)
+input_cell(ws0, 'C38', 90, fmt='"£"0')
+hint(ws0, 'D38', "AP's Wave 1 conversion, about £90 of sponsorship per sign-up. Change it and every pound figure in the game moves with it. Sign-ups never change.")
+ws0.merge_cells('D38:E38')
+ws0.row_dimensions[38].height = 34
 ws0.freeze_panes = 'A4'
 
 # ----------------------------------------------------------------------------------
@@ -1591,7 +1778,7 @@ plan = [
     ('15 to 25 minutes', "Level 4. Ask the room to guess the memory before you touch it. Most people say 20%. Show what 80% does to the line. Name adstock only after the line fits."),
     ('25 to 32 minutes', "Level 5. Type the halo numbers, then read the What if box. Say the 9,139 out loud and stop. Let the room say what it means for next year's budget."),
     ('32 to 38 minutes', "Level 6 in pairs on their own laptops. The point is the catch, not the numbers. Ask: which channel are you least sure of, and why?"),
-    ('38 to 45 minutes', "Level 8 as a race: who can find 1,000 extra sign-ups on the same budget first? Close on the average pound versus the last pound. Send everyone to Level 9 and Words for later."),
+    ('38 to 45 minutes', "Level 8 as a race: who can find 1,000 extra sign-ups on the same budget first? Close on the average pound versus the last pound. Send everyone to Levels 9 and 10 and Words for later."),
 ]
 r = 4
 header(wsr, r, 'Timings')
@@ -1629,7 +1816,7 @@ traps = [
     ("Isn't this just correlation?", "Partly, and AP say so. The model infers, it never witnesses. Three things make it more than a coincidence: it controls for everything else at once, it is tested on weeks it never saw, and channels that stopped or started (TV stopped after 2024) let it see what happens without them."),
     ("Why is the base so small? Surely people would sign up anyway.", "In the quiet months a few hundred do. In season, nearly every sign-up lines up with a sale or an advert. AP say the true base is close to zero, and that Race for Life is an earned product."),
     ("The halo felt too big.", "It did, and AP rebuilt it. They now measure Committed Giving media as one block rather than by channel, and the halo fell. It is still 5% of 2025 sign-ups and 9,139 of the 2025 decline."),
-    ("Why are Committed Giving returns so low?", "The model counts only brand new givers, at about £300 each in the window. Not the years of giving that follow, not the churn that adverts prevent. Wave 2 is meant to fix that."),
+    ("Why are Committed Giving returns so low?", "The model counts only brand new givers, at about £300 each in the window. Not the years of giving that follow, not the churn that adverts prevent. Level 10 shows the arithmetic. Wave 2 is meant to fix that."),
     ("Can we trust the channel split?", "Trust the group, quote the range on the channel. That is AP's own advice and the whole of Level 6."),
     ("Why not just spend more if £1 returns £1.66?", "Because the last pound returned 82p. The average pound looks great and the next pound does not. Move money first, then add."),
 ]
@@ -1647,7 +1834,7 @@ wsr.sheet_state = 'hidden'
 # ----------------------------------------------------------------------------------
 # 9. Sheet order, print setup, save
 # ----------------------------------------------------------------------------------
-order = ['Start here'] + [f'Level {i}' for i in range(1, 10)] + ['Words', ENG, 'Room notes', ANS]
+order = ['Start here'] + [f'Level {i}' for i in range(1, 11)] + ['Words', ENG, 'Room notes', ANS]
 wb._sheets = [wb[n] for n in order]
 wb.active = 0
 for ws in wb.worksheets:
