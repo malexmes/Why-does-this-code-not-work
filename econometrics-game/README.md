@@ -1,27 +1,38 @@
-# The Econometrics Game, version 2
+# The Econometrics Game
 
-A no-macro Excel workbook that teaches non-technical marketing teams how the Analytic Partners Wave 1 model of Race for Life sign-ups works, one block at a time.
+Excel games that teach non-technical marketing teams how the Analytic Partners Wave 1 model of Race for Life sign-ups works.
 
-## What is in the workbook
+## Version 3 (current): one screen, like an app
+
+`CRUK_Econometrics_Game_v3.xlsm` is a single-screen game. A progress bar, one picture, one sentence, one control, one Next button. Twenty-one steps in seven chapters on the Play screen, then a budget game, two short reading chapters and a finish screen with ten sentences to say in the room. Ten quiz stars.
+
+Buttons are cells. Clicking one fires a small VBA handler that moves the game state on the hidden State tab. All the maths stays in formulas, so `CRUK_Econometrics_Game_v3_no_macros.xlsx` is the same game driven from a visible State tab for machines that block macros.
 
 | Tab | What it does |
 |---|---|
-| Start here | The detective picture, how to play, two routes (five minutes or thirty), progress tracker |
-| Level 1 to Level 10 | One idea per tab. Regulars, brakes, the sale, the kettle (adstock), the halo, the channel split, the four tests, the next pound, brand and the long game, Committed Giving |
-| Words | Every term on a three-rung ladder: everyday picture, what it meant in Wave 1, the sentence to say in the room. Four native charts |
-| Under the bonnet | Every weekly number and formula the game uses. Visible on purpose |
-| Room notes (hidden) | Timings, the answer key and the six questions a room will ask |
+| Play | Chapters 1 to 7: receipts, the shop, the sale, the kettle, the next field, who sang louder, any good |
+| Budget | Chapter 8: move money between the thirteen 2025 channels, keep the total, beat the plan |
+| Long game | Chapter 9: brand consideration and the long-term multiplier |
+| Giving | Chapter 10: why Committed Giving shows 9p per £1 |
+| Finish | Stars and the ten sentences |
+| Words | Every term on a three-rung ladder |
+| Under the bonnet | Every weekly number and formula. Visible on purpose |
+| Steps, State (hidden) | The step content table and the game state |
+| Room notes (hidden) | Timings, answer key, the questions a room will ask |
 | Answers (very hidden) | The answer key the checks compare against |
 
 ## Where the numbers come from
 
-Every weekly series is read from the charts in the Wave 1 results deck: real sign-ups, spend by channel and product, AP's weekly decomposition of sign-ups by driver, brand consideration and new Committed Givers. The answer key is fitted to that decomposition. Nothing is illustrative except the four small pictures on the Words tab, which are labelled as such.
+Every weekly series is read from the charts in the Wave 1 results deck: real sign-ups, spend by channel and product, AP's weekly decomposition by driver, brand consideration and new Committed Givers. The answer key is fitted to that decomposition.
 
-## Rebuilding for the next wave
+## Rebuilding
 
 ```
-pip install python-pptx openpyxl numpy
-python build_econometrics_game.py <Wave_results.pptx> CRUK_Econometrics_Game_v2.xlsx
+pip install python-pptx openpyxl numpy oletools
+python build_econometrics_game_v3.py <Wave_results.pptx> app_v3     # writes app_v3.xlsx
+soffice --headless --accept="socket,host=127.0.0.1,port=2002;urp;" &   # LibreOffice with python3-uno
+python add_vba.py app_v3.xlsx CRUK_Econometrics_Game_v3.xlsm          # exports the VBA project through LibreOffice and injects it
+python test_vba.py                                                     # drives every button through the VBA in LibreOffice
 ```
 
-Then recalculate once in Excel or LibreOffice. The script prints the fitted answer key and the pattern-explained targets for each level.
+`Game.bas` is the VBA. `CRUK_Econometrics_Game_v2.xlsx` is the previous tab-per-level version, kept for reference.
