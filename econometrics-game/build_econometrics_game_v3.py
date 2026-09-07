@@ -876,3 +876,22 @@ from openpyxl.workbook.properties import CalcProperties
 wb.calculation = CalcProperties(fullCalcOnLoad=True)
 wb.save(OUT + '.xlsx')
 print('saved', OUT + '.xlsx')
+
+# ---- optional JSON export for the web app
+import os, json
+if os.environ.get('GAME_JSON'):
+    L = lambda a, nd=2: [round(float(v), nd) for v in a]
+    data = {
+        'dates': [d.isoformat() for d in dates],
+        'actual': L(actual, 0), 'shapeBase': L(shape_base, 4), 'shapeBrake': L(shape_brake, 4), 'shapeSale': L(shape_sale, 4),
+        'rflSpend': L(rfl_spend), 'haloSpend': L(halo_spend), 'cogSpend': L(cog_spend),
+        'chNames': [g[0] for g in groups], 'chSpend': [L(s) for s in ch_spend],
+        'apBase': L(ap_base, 1), 'apBrake': L(ap_brake, 1), 'apSale': L(ap_sale, 1), 'apRfl': L(ap_rfl, 1), 'apHalo': L(ap_halo, 1),
+        'apCh': [L(c, 1) for c in ap_ch], 'cogSignups': L(cog_signups, 0), 'consideration': L(consideration, 4), 'totalMedia': L(total_media / 1000, 1),
+        'answers': {'base': round(ans_base), 'brake': round(ans_brake), 'sale': round(ans_sale, -1), 'rfl': round(ans_rfl, 1), 'mem': mem_rfl,
+                    'halo': round(ans_halo, 2), 'ch': [round(k, 1) for k in ch_ans], 'chMem': ch_mem},
+        'channels': [{'name': n, 'spend': round(s / 1000), 'roi': r, 'ap': round(a / 1000)} for n, s, r, a in channels],
+        'waterfall': waterfall,
+    }
+    json.dump(data, open(os.environ['GAME_JSON'], 'w'))
+    print('json written', os.environ['GAME_JSON'])

@@ -39,3 +39,14 @@ python test_vba.py                                                     # drives 
 ```
 
 `Game.bas` is the VBA. `CRUK_Econometrics_Game_v2.xlsx` is the previous tab-per-level version, kept for reference.
+
+## Web version
+
+`web/index.html` is the same game as a single-page web app: no macros, no Excel, works on iPad, phones, Mac and Windows in any browser. It loads Chart.js from cdnjs and everything else is inline. Rebuild it with:
+
+```
+GAME_JSON=web/game_data.json python build_econometrics_game_v3.py <Wave_results.pptx> app_v3
+python -c "import json;t=open('web/game_template.html').read();open('web/index.html','w').write(t.replace('/*DATA*/{}', json.dumps(json.load(open('web/game_data.json')), separators=(',',':'))))"
+```
+
+Progress is saved in the viewer's browser only.
