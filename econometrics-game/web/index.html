@@ -306,8 +306,8 @@ function timeChart(canvas, datasets, opt = {}) {
 function barChart(canvas, labels, datasets, opt = {}) {
   const c = new Chart(canvas, { type:'bar', data:{ labels, datasets }, options:{ indexAxis:opt.horizontal ? 'y' : 'x', responsive:true, maintainAspectRatio:false, animation:{ duration:reduced() ? 0 : 300 },
     plugins:{ legend:opt.legend === false ? { display:false } : legendOpts, overlay:opt.overlay || {}, tooltip:{ callbacks:{ label:x => `${x.dataset.label}: ${opt.money ? gbp(opt.horizontal ? x.parsed.x : x.parsed.y) : fmt(opt.horizontal ? x.parsed.x : x.parsed.y)}` } } },
-    scales:{ x:{ stacked:!!opt.stacked, ticks:{ color:css('--ink-2'), font:baseFont, callback:opt.horizontal ? (v => opt.money ? gbp(v) : fmt(v)) : undefined }, grid:{ display:!opt.horizontal ? false : true, color:css('--line') } },
-      y:{ stacked:!!opt.stacked, min:opt.ymin, max:opt.ymax, grace:'8%', ticks:{ color:css('--muted'), font:baseFont, callback:v => opt.horizontal ? v : (opt.money ? gbp(v) : fmt(v)) }, grid:{ display:!!opt.horizontal ? false : true, color:css('--line') }, title:opt.ytitle ? { display:true, text:opt.ytitle, color:css('--muted'), font:baseFont } : undefined } } } });
+    scales:{ x:{ stacked:!!opt.stacked, ticks:{ color:css('--ink-2'), font:baseFont, callback:opt.horizontal ? (v => opt.money ? gbp(v) : fmt(v)) : function(v) { return this.getLabelForValue(v); } }, grid:{ display:!opt.horizontal ? false : true, color:css('--line') } },
+      y:{ stacked:!!opt.stacked, min:opt.ymin, max:opt.ymax, grace:'8%', ticks:{ color:css('--muted'), font:baseFont, callback:function(v) { return opt.horizontal ? this.getLabelForValue(v) : (opt.money ? gbp(v) : fmt(v)); } }, grid:{ display:!!opt.horizontal ? false : true, color:css('--line') }, title:opt.ytitle ? { display:true, text:opt.ytitle, color:css('--muted'), font:baseFont } : undefined } } } });
   charts.push(c); return c;
 }
 const bandRuns = (weeks, color) => runs(weeks).map(([a, b]) => ({ from:a, to:b, color }));

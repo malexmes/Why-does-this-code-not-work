@@ -50,3 +50,9 @@ python -c "import json;t=open('web/game_template.html').read();open('web/index.h
 ```
 
 Progress is saved in the viewer's browser only.
+
+## Public edition
+
+`public/index.html` is a fully fictional edition for sharing outside the organisation. The charity (Lantern), the event (Big Splash), every weekly series and every quoted figure are invented by `make_fiction.py`, which generates the data from a known model plus noise and rewrites the page text to match. No client, agency or product name and no real figure appears in it. That file is what the `gh-pages` branch serves.
+
+`web/index.html` is the real-data edition and is not for public hosting.
