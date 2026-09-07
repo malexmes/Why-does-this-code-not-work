@@ -60,7 +60,7 @@ groups = [
     ('Online video', ['VOD'], ['VOD']),
     ('Radio', ['Radio'], ['Radio']),
     ('Posters', ['OOH'], ['OOH']),
-    ('Digital and social', ['Paid Social EMC', 'Paid Social Oliver', 'Google Ads Generic', 'Microsoft Ads Generic', 'Display',
+    ('Digital, social and the rest', ['Paid Social EMC', 'Paid Social Oliver', 'Google Ads Generic', 'Microsoft Ads Generic', 'Display',
                             'Digital Audio', 'YouTube', 'Regional', 'Press Partnership', 'Telemarketing Ethicall',
                             'Telemarketing SS', 'Direct Mail', 'Door Drops'],
      ['Paid Social', 'Paid Search', 'Display', 'Digital Audio', 'YouTube', 'Regional', 'Press Partnership', 'Other Media']),
@@ -178,16 +178,16 @@ hdrs = [
     ('A', 'Week starting'), ('B', 'Year'), ('C', 'Month'), ('D', 'Real sign-ups'),
     ('E', 'Shape: base'), ('F', 'Shape: brake'), ('G', 'Shape: sale'),
     ('H', 'RFL adverts £k'), ('I', 'RFL adstock'), ('J', 'Committed Giving £k'), ('K', 'Other causes adverts £k'),
-    ('N', 'TV £k'), ('O', 'Online video £k'), ('P', 'Radio £k'), ('Q', 'Posters £k'), ('R', 'Digital and social £k'),
+    ('N', 'TV £k'), ('O', 'Online video £k'), ('P', 'Radio £k'), ('Q', 'Posters £k'), ('R', 'Digital, social and the rest £k'),
     ('S', 'TV adstock'), ('T', 'Online video adstock'), ('U', 'Radio adstock'), ('V', 'Posters adstock'), ('W', 'Digital adstock'),
     ('X', 'Your block: base'), ('Y', 'Your block: brake'), ('Z', 'Your block: sale'), ('AA', 'Your block: RFL adverts'),
     ('AB', 'Your block: halo'), ('AE', 'Your block: TV'), ('AF', 'Your block: Online video'), ('AG', 'Your block: Radio'),
-    ('AH', 'Your block: Posters'), ('AI', 'Your block: Digital and social'),
+    ('AH', 'Your block: Posters'), ('AI', 'Your block: Digital, social and the rest'),
     ('AJ', 'Model 1 base'), ('AK', 'Model 2 brake'), ('AL', 'Model 3 sale'), ('AM', 'Model 4 adverts'), ('AN', 'Model 5 halo'),
     ('AO', 'Model 6 split'), ('AP', 'Your final model'),
     ('AQ', 'AP block: base'), ('AR', 'AP block: brake'), ('AS', 'AP block: sale'), ('AT', 'AP block: RFL adverts'),
     ('AU', 'AP block: halo'), ('AX', 'AP block: TV'), ('AY', 'AP block: Online video'), ('AZ', 'AP block: Radio'),
-    ('BA', 'AP block: Posters'), ('BB', 'AP block: Digital and social'), ('BC', 'Wave 1 model'),
+    ('BA', 'AP block: Posters'), ('BB', 'AP block: Digital, social and the rest'), ('BC', 'Wave 1 model'),
     ('BD', 'Wave 1 model 1'), ('BE', 'Wave 1 model 2'), ('BF', 'Wave 1 model 3'), ('BG', 'Wave 1 model 4'), ('BH', 'Wave 1 model 5'),
     ('BI', 'Wave 1 model 6'),
     ('BJ', 'Chart: Wave 1 answer'), ('BK', 'Chart: your model'), ('BL', 'Chart: adverts spend £k'),
@@ -293,10 +293,10 @@ content = [
      'info', 0, 0, 0, 0, 0, 'Analytic Partners did this for us in 2026 and called it Wave 1. Every number in this game is theirs.', '', 'Econometrics', '', '', '', 0, 0, 0, 0, '', ''),
     (4, 2, 'The shop', 'Start with the quiet weeks',
      'In autumn almost nobody signs up. Almost. Tap + until your blue line sits on the quiet weeks.',
-     'dial', 1, 100, 500, f'={A_}C3', f'={A_}C11', 'About 900 a week sign up whatever we do. People who already know us, and the ones we email.',
+     'dial', 1, 100, 500, f'={A_}C3', f'={A_}C11', 'About 900 a week: people who already consider us, plus the ones we email. AP count emails as our own media, so this block is the base plus emails.',
      'Look at August to December. Hundreds, not thousands.', 'Baseline', '', '', '', 0, 0, 1, 0, 'sign-ups a week', '#,##0'),
     (5, 2, 'The shop', 'If every advert and every sale stopped, how many would sign up a week?', 'Tap one.',
-     'quiz', 0, 0, 0, 0, 0, 'Right. The base is small. Almost every other sign-up was caused by something we did.',
+     'quiz', 0, 0, 0, 0, 0, 'Right, and once price and the shut window are counted AP put the true base close to zero. Almost every sign-up was caused by something we did.',
      'Look at where your blue line sat in the last step.', 'Baseline', 'About 900', 'About 9,000', 'Nobody at all', 1, 2, 1, 0, '', ''),
     (6, 2, 'The shop', 'Now the brake',
      'A dearer ticket and a shut window push people away. Tap + until the brake feels right. Your line dips below zero in autumn. That is fine for now.',
@@ -318,7 +318,7 @@ content = [
      'Somewhere between 5 and 30.', 'Response', '', '', '', 0, 0, 4, 1, 'sign-ups per £1,000', '#,##0.0'),
     (11, 4, 'The kettle', 'The kettle',
      'Adverts keep working after they stop, like a kettle stays hot. Tap + on the memory until your line matches the shape of the pink one.',
-     'dial', 5, 10, 10, f'={A_}C7', f'={A_}C12', 'Memory of 80%: the effect fades slowly over months. Judge a campaign in week one and you miss most of it.',
+     'dial', 5, 10, 10, f'={A_}C7', f'={A_}C12', 'Memory of 80%: the effect fades slowly over months. AP do not publish the rate; this one is fitted to their weekly line. Judge a campaign in week one and you miss most of it.',
      'Try a high number. Adverts fade over months, not days.', 'Adstock', '', '', '', 0, 0, 4, 1, "% of last week's effect still here", '0"%"'),
     (12, 4, 'The kettle', 'Every £1 of Race for Life adverts brought back how much sponsorship in 2025?', 'Tap one.',
      'quiz', 0, 0, 0, 0, 0, 'Yes. £1.66 on average. Remember the word average. It matters in chapter 8.',
@@ -334,7 +334,7 @@ content = [
      'quiz', 0, 0, 0, 0, 0, 'A halo. Committed Giving adverts were quietly filling Race for Life too.',
      'Think of rain on the next field.', 'Halo', 'A halo', 'A discount', 'Seasonality', 1, 5, 5, 0, '', ''),
     (16, 6, 'Who sang louder', 'Split the adverts into five',
-     'TV, video, radio, posters, digital. They mostly run in the same weeks. Tap − and + on each until all five ticks show.',
+     'TV, video, radio, posters, and digital, social and the rest. They mostly run in the same weeks. Tap − and + on each until all five ticks show.',
      'dials5', 0, 1, 1, 0, f'={A_}C13', 'All five about right. Notice how loose the checks were. That is the point.',
      'Your chapter 4 number is the guide for each. Posters are much weaker.', 'Multicollinearity', '', '', '', 0, 0, 6, 0, '', ''),
     (17, 6, 'Who sang louder', 'The group is firm, the split is soft',
@@ -342,7 +342,7 @@ content = [
      'info', 0, 0, 0, 0, 0, 'Two people singing the same note: you hear the sound but cannot tell who is louder. Quote the range on any single channel.', '', 'Multicollinearity', '', '', '', 0, 0, 6, 0, '', ''),
     (18, 6, 'Who sang louder', 'Which channel was AP least sure about?', 'Tap one.',
      'quiz', 0, 0, 0, 0, 0, 'Posters: about 60p back per £1, with a wide range either side.',
-     'Which one needed the smallest number?', 'Confidence interval', 'Posters', 'TV', 'Digital and social', 1, 6, 6, 0, '', ''),
+     'Which one needed the smallest number?', 'Confidence interval', 'Posters', 'TV', 'Digital, social and the rest', 1, 6, 6, 0, '', ''),
     (19, 7, 'Any good?', 'Is your model any good?', 'Four questions judge any model. Your scores sit beside Wave 1\'s.',
      'tests', 0, 0, 0, 0, 0, 'Green all round. Your model explains the pattern, predicts weeks it never saw and leaves little unexplained.',
      'Amber? Go back a chapter and adjust that block.', 'R squared, MAPE, holdout', '', '', '', 0, 0, 6, 0, '', ''),
@@ -561,8 +561,8 @@ play.merge_cells('T25:Z25')
 play['T25'] = f'=IF({H["modelcol"]}>=3,"Pattern explained so far: "&TEXT({H["r2"]},"0%"),"")'
 play['T25'].font = F(10, color=GREY); play['T25'].alignment = LEFT
 play.merge_cells('T27:Z27')
-play['T27'] = (f'=IF({REVEAL}=1,IF({TYPE}="dial","Wave 1\'s number: "&TEXT({ANSV},{H["fmt"]}),'
-               f'IF({TYPE}="dials5","Wave 1: "&TEXT({A_}E16,"0.0")&", "&TEXT({A_}E17,"0.0")&", "&TEXT({A_}E18,"0.0")&", "&TEXT({A_}E19,"0.0")&", "&TEXT({A_}E20,"0.0"),'
+play['T27'] = (f'=IF({REVEAL}=1,IF({TYPE}="dial","Answer, fitted to Wave 1: "&TEXT({ANSV},{H["fmt"]}),'
+               f'IF({TYPE}="dials5","Fitted to Wave 1: "&TEXT({A_}E16,"0.0")&", "&TEXT({A_}E17,"0.0")&", "&TEXT({A_}E18,"0.0")&", "&TEXT({A_}E19,"0.0")&", "&TEXT({A_}E20,"0.0"),'
                f'IF({TYPE}="quiz","Wave 1\'s answer: "&CHOOSE({COR},"A","B","C"),"Wave 1\'s model is the grey dashed line."))),"")')
 play['T27'].font = F(10, True, MAG); play['T27'].alignment = LEFT
 play['B31'] = f'=IF({TYPE}="dial","Tip: −− and ++ move in bigger steps.","")'
@@ -736,11 +736,11 @@ lg['B9'] = 'All CRUK media spend each week (grey) and brand consideration (pink)
 # ---- Giving
 gv = wb.create_sheet('Giving')
 gv.sheet_properties.codeName = 'Sheet4'
-btn = app_frame(gv, CYAN, '="Chapter 10  ·  Committed Giving"', '="Committed Giving looks like 9p per £1 because the model only counts the first gift"',
+btn = app_frame(gv, CYAN, '="Chapter 10  ·  Committed Giving"', '="Committed Giving looks like 9p per £1 because the model only counts new givers inside the window"',
                 '="The bars show why new monthly givers fell 23% in 2025. Inflation and the advertising cut each took about a quarter. One we chose, one we did not."')
 stats = [('73%', 'of new Committed Givers over three years came from marketing, direct and halo together.'),
          ('904 and 307', 'new givers lost to inflation and to the Committed Giving cut. The two biggest causes of the 23% fall.'),
-         ('9p per £1', 'counts only the first gift of brand new givers. Not the years that follow, not the churn adverts prevent.')]
+         ('9p per £1', 'counts only the income from brand new givers inside the modelled window, about £300 each. Not the existing book, not the years that follow, not the churn adverts prevent.')]
 for k, (big, small) in enumerate(stats):
     r = 10 + k * 3
     gv[f'T{r}'] = big; gv[f'T{r}'].font = F(22, True, MAG); gv.row_dimensions[r].height = 30
@@ -748,7 +748,7 @@ for k, (big, small) in enumerate(stats):
     gv.row_dimensions[r + 2].height = 8
 gv['T19'] = 'Why does Committed Giving show only 9p per £1?'; gv['T19'].font = F(12, True, NAVY); gv['T19'].alignment = TOP
 gv.merge_cells('T19:Z19'); gv.row_dimensions[19].height = 34
-quiz_block(gv, 20, 10, ['It counts only the first gift of new givers', 'The adverts do not work', 'Inflation'],
+quiz_block(gv, 20, 10, ['It counts only new givers, inside the modelled window', 'The adverts do not work', 'Inflation'],
            'The short-term return is a floor. The years of giving that follow are not in the number yet.',
            'Think about what a monthly giver is worth over years, not months.', 'Base driver and lifetime value')
 waterfall = [('Inflation', -904), ('Committed Giving adverts cut', -307), ('Brand adverts cut', -107), ('Race for Life adverts cut', -102),
@@ -784,7 +784,7 @@ room = [
     ('Model tests', 'Wave 1 explains 94% of the weekly pattern, predicts weeks it never saw and left 1.4% of the 2025 fall unexplained.'),
     ('Marginal return', 'The average pound returned £1.66 but the last pound returned 82p. Moving money is worth £1.1m before adding a single pound.'),
     ('Brand equity', 'Nearly a fifth of the people who consider us do so because of adverts they saw years ago. The short-term return is the floor.'),
-    ('Lifetime value', 'Committed Giving shows 9p per pound because the model only counts the first gift of brand new givers.'),
+    ('Lifetime value', 'Committed Giving shows 9p per pound because the model only counts new givers inside the modelled window, not the years of giving that follow.'),
 ]
 for k, (word, sent) in enumerate(room):
     r = 9 + k * 2
@@ -808,7 +808,7 @@ for j, h in enumerate(['The word', 'The everyday picture', 'What it meant in Wav
 glossary = [
     ('Econometrics', 'A detective with three years of weekly till receipts, working out which adverts raised the money.', 'AP read 148 weeks of sign-ups against everything that happened each week and measured what each thing was worth.', 'Econometrics is a detective reading three years of weekly receipts to work out which pounds raised the sign-ups.'),
     ('Baseline', 'The customers who walk into a shop because it is there and open.', 'A few hundred a week, from people who already consider us and from our emails. AP say the true base is close to zero.', 'The base is what we would get with the adverts off. Everything above it is what we caused.'),
-    ('Driver', 'Anything that moves sign-ups up or down: an advert, a sale, the price, the time of year, inflation.', 'AP tested 18 marketing drivers and six others and kept those with a reliable link. Weather, PR and outages had none.', 'A driver is anything the model found that moves sign-ups.'),
+    ('Driver', 'Anything that moves sign-ups up or down: an advert, a sale, the price, the time of year, inflation.', 'AP tested 18 marketing drivers and seven others and kept those with a reliable link. Weather, PR and outages had none.', 'A driver is anything the model found that moves sign-ups.'),
     ('Negative driver', 'A brake. A dearer ticket means fewer people buy it.', 'Price and the shut autumn window pull sign-ups down. A 12% lower fee in 2025 added about 2,500 sign-ups.', 'Price pulls sign-ups down, and the model measures the brake as well as the accelerator.'),
     ('Pull-forward', 'A January sale. People who were going to buy in February buy in January instead, so February is quiet.', 'Fewer sign-ups in the weeks after a discount window closed. AP added this so sales were not over-credited.', 'Discounts bring sign-ups forward as well as adding new ones. The dip afterwards is real.'),
     ('Adstock', 'A kettle. Switch it off and the water stays hot for a while.', 'Each block has a memory. The short-term effect of Race for Life adverts lasts up to six months.', 'Our adverts keep raising sign-ups for weeks after they stop, and the model measures how fast that fades.'),
