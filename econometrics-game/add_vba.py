@@ -14,7 +14,7 @@ from com.sun.star.beans import PropertyValue
 
 SRC, OUT = sys.argv[1], sys.argv[2]
 HERE = os.path.dirname(os.path.abspath(__file__))
-SHEET_MODULES = {'Play': 'Sheet1', 'Budget': 'Sheet2', 'Long game': 'Sheet3', 'Giving': 'Sheet4', 'Finish': 'Sheet5'}
+SHEET_MODULES = {'Race for Life': 'Sheet1', 'Brand': 'Sheet2', 'Giving': 'Sheet3', 'Finish': 'Sheet4'}
 
 # 1. minimal base workbook with the same sheets and codenames
 src = openpyxl.load_workbook(SRC)

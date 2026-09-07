@@ -2,8 +2,10 @@ Option Explicit
 
 ' The Econometrics Game v3. All game state lives on the State sheet.
 ' Buttons are cells. Each app sheet passes clicks here from Worksheet_SelectionChange.
+' Core VBA only: no ActiveX, no forms, no Windows calls, so it runs on Excel for Mac and Windows.
 
-Private Const MAXSTEP As Long = 21
+Private Const MAXSTEP As Long = 22
+Private Const BUDGET_TOP As Long = 31
 
 Private Function St() As Worksheet
     Set St = ThisWorkbook.Worksheets("State")
@@ -38,15 +40,15 @@ End Sub
 
 Public Sub Dispatch(ByVal sheetName As String, ByVal a As String)
     Select Case sheetName
-        Case "Play": PlayClick a
-        Case "Budget": BudgetClick a
-        Case "Long game": ReadClick a, 3
-        Case "Giving": ReadClick a, 4
+        Case "Race for Life": RflClick a
+        Case "Brand": ReadClick a, 2
+        Case "Giving": ReadClick a, 3
         Case "Finish": FinishClick a
     End Select
 End Sub
 
-Private Sub PlayClick(ByVal a As String)
+Private Sub RflClick(ByVal a As String)
+    Dim col As String, rowNum As Long
     Select Case a
         Case "B29": GoBack
         Case "T29": GoNext
@@ -70,6 +72,23 @@ Private Sub PlayClick(ByVal a As String)
         Case "V13": NudgeChannel 3, 1
         Case "V14": NudgeChannel 4, 1
         Case "V15": NudgeChannel 5, 1
+        ' chapter 8, the budget game, rows 31 down
+        Case "B55": SetStep 21
+        Case "T55": ShowStage 2
+        Case "G55": St.Range("B64").Value = 1 - Val(St.Range("B64").Value)
+        Case "L55": BudgetReset
+        Case "T47": St.Range("B24").Value = 1
+        Case "T48": St.Range("B24").Value = 2
+        Case "T49": St.Range("B24").Value = 3
+        Case Else
+            If Len(a) >= 3 Then
+                col = Left(a, 1)
+                rowNum = CLng(Val(Mid(a, 2)))
+                If rowNum >= 38 And rowNum <= 50 Then
+                    If col = "M" Then BudgetNudge rowNum - 37, -1
+                    If col = "N" Then BudgetNudge rowNum - 37, 1
+                End If
+            End If
     End Select
 End Sub
 
@@ -95,22 +114,38 @@ Private Sub SetStep(ByVal n As Long)
     St.Range("B1").Value = n
     St.Range("B14").Value = 0
     St.Range("B15").Value = 0
+    ScrollForStep n
+End Sub
+
+Private Sub ScrollForStep(ByVal n As Long)
+    On Error Resume Next
+    If ActiveSheet.Name <> "Race for Life" Then Exit Sub
+    If n = MAXSTEP Then
+        ActiveWindow.ScrollRow = BUDGET_TOP
+    Else
+        ActiveWindow.ScrollRow = 1
+    End If
 End Sub
 
 Public Sub ShowStage(ByVal n As Long)
     Dim nm As String
     Select Case n
-        Case 1: nm = "Play"
-        Case 2: nm = "Budget"
-        Case 3: nm = "Long game"
-        Case 4: nm = "Giving"
-        Case Else: nm = "Finish": n = 5
+        Case 1: nm = "Race for Life"
+        Case 2: nm = "Brand"
+        Case 3: nm = "Giving"
+        Case Else: nm = "Finish": n = 4
     End Select
     St.Range("B30").Value = n
     ThisWorkbook.Worksheets(nm).Activate
     On Error Resume Next
     ActiveWindow.DisplayHeadings = False
     ActiveWindow.DisplayGridlines = False
+    ActiveWindow.ScrollColumn = 1
+    If n = 1 Then
+        ScrollForStep CurStep
+    Else
+        ActiveWindow.ScrollRow = 1
+    End If
     ActiveSheet.Range("A1").Select
 End Sub
 
@@ -165,31 +200,10 @@ Public Sub ResetGame()
     ShowStage 1
 End Sub
 
-' ---- Budget sheet
-Private Sub BudgetClick(ByVal a As String)
-    Dim col As String, rowNum As Long
-    Select Case a
-        Case "B29": ShowStage 1
-        Case "T29": ShowStage 3
-        Case "G29": St.Range("B64").Value = 1 - Val(St.Range("B64").Value)
-        Case "L29": BudgetReset
-        Case "T20": St.Range("B24").Value = 1
-        Case "T21": St.Range("B24").Value = 2
-        Case "T22": St.Range("B24").Value = 3
-        Case Else
-            If Len(a) >= 3 Then
-                col = Left(a, 1)
-                rowNum = CLng(Val(Mid(a, 2)))
-                If rowNum >= 11 And rowNum <= 23 Then
-                    If col = "M" Then BudgetNudge rowNum - 10, -1
-                    If col = "N" Then BudgetNudge rowNum - 10, 1
-                End If
-            End If
-    End Select
-End Sub
-
+' ---- chapter 8 budget helpers
 Private Sub BudgetNudge(ByVal i As Long, ByVal sign As Long)
     Dim baseSpend As Double, v As Double, stepSize As Double
+    If CurStep <> MAXSTEP Then Exit Sub
     If Val(St.Range("B64").Value) = 1 Then St.Range("B64").Value = 0
     baseSpend = Val(St.Cells(50 + i, 3).Value)
     stepSize = Round(baseSpend * 0.1, 0)
@@ -208,10 +222,10 @@ Private Sub BudgetReset()
     St.Range("B64").Value = 0
 End Sub
 
-' ---- Reading chapters (Long game = stage 3, Giving = stage 4)
+' ---- Reading chapters (Brand = stage 2, quiz 9; Giving = stage 3, quiz 10)
 Private Sub ReadClick(ByVal a As String, ByVal stage As Long)
     Dim q As Long
-    q = 6 + stage
+    q = 7 + stage
     Select Case a
         Case "B29": ShowStage stage - 1
         Case "T29": ShowStage stage + 1
@@ -223,7 +237,7 @@ End Sub
 
 Private Sub FinishClick(ByVal a As String)
     Select Case a
-        Case "B29": ShowStage 4
+        Case "B29": ShowStage 3
         Case "T29": ResetGame
     End Select
 End Sub

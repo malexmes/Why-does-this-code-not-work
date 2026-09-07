@@ -351,6 +351,8 @@ content = [
      'Think of a student who memorises last year\'s exam paper.', 'Holdout test', 'It learned the noise, not the pattern', 'It needs more adverts', '2025 was just unusual', 1, 7, 6, 0, '', ''),
     (21, 7, 'Any good?', 'You built the model', 'Seven chapters, one model, every number Wave 1\'s. Next: where should the next pound go?',
      'info', 0, 0, 0, 0, 0, 'Say it in the room: about half of Race for Life sign-ups come from Race for Life adverts, a fifth from sales and 15% from other causes\' adverts.', '', 'Decomposition', '', '', '', 0, 0, 6, 0, '', ''),
+    (22, 8, 'The next pound', 'Where should the next pound go?', 'Chapter 8 is the budget game, just below this screen. Scroll down if you cannot see it.',
+     'info', 0, 0, 0, 0, 0, 'Tap − and + to move money between the thirteen 2025 channels. Keep the total. Beat the 2025 plan, then answer the question.', '', '', '', '', '', 0, 0, 6, 0, '', ''),
 ]
 for row in content:
     for j, v in enumerate(row):
@@ -373,8 +375,8 @@ for r, lab in labels.items():
 for q in range(1, 11):
     st[f'A{16 + q}'] = f'Quiz {q} answer chosen (1 to 3)'; st[f'B{16 + q}'] = 0; st[f'C{16 + q}'] = 1
 st['A28'] = 'Stars'; st['B28'] = '=SUMPRODUCT(--(B17:B26=C17:C26))'
-st['A30'] = 'Stage (1 Play, 2 Budget, 3 Long game, 4 Giving, 5 Finish)'; st['B30'] = 1
-st['A31'] = 'Progress (of 24)'; st['B31'] = '=IF(B30=1,B1,MIN(24,21+B30-1))'
+st['A30'] = 'Stage (1 Race for Life, 2 Brand, 3 Giving, 4 Finish)'; st['B30'] = 1
+st['A31'] = 'Progress (of 24)'; st['B31'] = '=IF(B30=1,MIN(22,B1),MIN(24,22+B30-1))'
 helpers = {
     33: ('Step type', f'={IDX("F")}'), 34: ('Dial id', f'={IDX("G")}'), 35: ('Answer', f'={IDX("J")}'), 36: ('Tolerance', f'={IDX("K")}'),
     37: ('Current value', f'=IF(B34=0,0,INDEX($B$2:$B$12,B34))'), 38: ('Quiz index', f'={IDX("S")}'),
@@ -418,8 +420,8 @@ for r in range(1, 80):
     st[f'A{r}'].font = F(10); st[f'B{r}'].font = F(10)
 for r in list(range(1, 13)) + [14, 15] + list(range(17, 27)) + [48] + list(range(51, 64)) + [64]:
     st[f'B{r}'].fill = FILL(YEL); st[f'B{r}'].border = BOX
-st['D1'] = ('No macros? This tab is the control panel. Type the step number in B1 (1 to 21), the dials in B2 to B12, '
-            'quiz answers in B17 to B26 and the budget in B51 to B63. Set B30 to 2, 3, 4 or 5 to move to the later chapters.')
+st['D1'] = ('No macros? This tab is the control panel. Type the step number in B1 (1 to 22; step 22 is the budget game lower down the Race for Life tab), the dials in B2 to B12, '
+            'quiz answers in B17 to B26 and the budget in B51 to B63. Set B30 to 2 (Brand), 3 (Giving) or 4 (Finish) to move on.')
 st['D1'].font = F(10, italic=True); st['D1'].alignment = TOP; st.merge_cells('D1:K6')
 st.sheet_state = 'hidden'
 
@@ -471,7 +473,7 @@ def app_frame(ws, tab_color, chapter_formula, title_formula, sentence_formula, b
 
 
 # ---- Play
-play = wb.create_sheet('Play')
+play = wb.create_sheet('Race for Life')
 play.sheet_properties.codeName = 'Sheet1'
 btn = app_frame(play, MAG, f'="Chapter "&{IDX("B")}&"  ·  "&{IDX("C")}', f'={IDX("D")}', f'={IDX("E")}')
 btn('G29:J29', f'=IF({HINT}=1,"Hide hint","Hint")', 'E9EDF3', NAVY)
@@ -594,63 +596,7 @@ line += bar
 line.title = None; line.style = 2; line.width = 19.5; line.height = 12.4; line.legend.position = 'b'
 play.add_chart(line, 'B10')
 
-# ---- Budget
-bud = wb.create_sheet('Budget')
-bud.sheet_properties.codeName = 'Sheet2'
-btn = app_frame(bud, MAG, '="Chapter 8  ·  The next pound"', '="Where should the next pound go?"',
-                '="The third biscuit never tastes like the first: each extra £1 on a channel earns a little less. Tap − and + to move money. Keep the total. Beat the 2025 plan."')
-btn('G29:J29', f'=IF({BUDMODE}=1,"Back to my plan","Show AP\'s plan")', 'E9EDF3', NAVY)
-btn('L29:O29', 'Reset plan', 'E9EDF3', NAVY)
-hdr = ['Channel', '2025 £k', 'Your £k', '', '', 'Sign-ups', 'Return per £1']
-for j, (h, colspan) in enumerate(zip(hdr, [(2, 6), (7, 9), (10, 12), (13, 13), (14, 14), (15, 16), (17, 18)])):
-    pass
-layout = [('B', 'F', 'Channel'), ('G', 'I', '2025 £k'), ('J', 'L', 'Your £k'), ('M', 'M', ''), ('N', 'N', ''), ('O', 'P', 'Sign-ups'), ('Q', 'R', 'Return per £1')]
-bud.row_dimensions[10].height = 22
-for a, b, h in layout:
-    bud.merge_cells(f'{a}10:{b}10'); c = bud[f'{a}10']; c.value = h; c.font = F(10, True, 'FFFFFF'); c.fill = FILL(NAVY); c.alignment = CENTER
-for i, (nm, spend, roi, apv) in enumerate(channels, start=1):
-    r = 10 + i
-    bud.row_dimensions[r].height = 24
-    bud.merge_cells(f'B{r}:F{r}'); bud[f'B{r}'] = nm; bud[f'B{r}'].font = F(11); bud[f'B{r}'].alignment = LEFT
-    bud.merge_cells(f'G{r}:I{r}'); bud[f'G{r}'] = f'={ST}$C${50 + i}'; bud[f'G{r}'].number_format = '#,##0'; bud[f'G{r}'].font = F(11, color=GREY); bud[f'G{r}'].alignment = CENTER
-    bud.merge_cells(f'J{r}:L{r}'); bud[f'J{r}'] = f'=IF({BUDMODE}=1,{ST}$E${50 + i},{BUD(i)})'; bud[f'J{r}'].number_format = '#,##0'; bud[f'J{r}'].font = F(11, True, NAVY); bud[f'J{r}'].alignment = CENTER
-    bud[f'M{r}'] = '−'; bud[f'N{r}'] = '+'
-    for cc in 'MN':
-        bud[f'{cc}{r}'].font = F(13, True, 'FFFFFF'); bud[f'{cc}{r}'].fill = FILL(NAVY); bud[f'{cc}{r}'].alignment = CENTER
-    bud.merge_cells(f'O{r}:P{r}'); bud[f'O{r}'] = f'=IF(J{r}<=0,0,({ST}$D${50 + i}*{ST}$C${50 + i}*1000/90)/SQRT({ST}$C${50 + i})*SQRT(J{r}))'
-    bud[f'O{r}'].number_format = '#,##0'; bud[f'O{r}'].font = F(11); bud[f'O{r}'].alignment = CENTER
-    bud.merge_cells(f'Q{r}:R{r}'); bud[f'Q{r}'] = f'=IF(J{r}<=0,0,O{r}*{POUND}/1000/J{r})'
-    bud[f'Q{r}'].number_format = '"£"0.00'; bud[f'Q{r}'].font = F(11); bud[f'Q{r}'].alignment = CENTER
-    for cc in 'BGJOQ':
-        bud[f'{cc}{r}'].border = Border(bottom=thin)
-bud.conditional_formatting.add('J11:J23', DataBarRule(start_type='num', start_value=0, end_type='num', end_value=1600, color=CYAN))
-r = 24
-bud.row_dimensions[r].height = 22
-bud.merge_cells(f'B{r}:F{r}'); bud[f'B{r}'] = 'Total'; bud[f'B{r}'].font = F(11, True)
-bud.merge_cells(f'G{r}:I{r}'); bud[f'G{r}'] = '=SUM(G11:G23)'; bud[f'G{r}'].number_format = '#,##0'; bud[f'G{r}'].font = F(11, True); bud[f'G{r}'].alignment = CENTER
-bud.merge_cells(f'J{r}:L{r}'); bud[f'J{r}'] = '=SUM(J11:J23)'; bud[f'J{r}'].number_format = '#,##0'; bud[f'J{r}'].font = F(11, True, NAVY); bud[f'J{r}'].alignment = CENTER
-bud.merge_cells(f'O{r}:P{r}'); bud[f'O{r}'] = '=SUM(O11:O23)'; bud[f'O{r}'].number_format = '#,##0'; bud[f'O{r}'].font = F(11, True); bud[f'O{r}'].alignment = CENTER
-bud.merge_cells(f'Q{r}:R{r}'); bud[f'Q{r}'] = f'=O24*{POUND}/1000/J24'; bud[f'Q{r}'].number_format = '"£"0.00'; bud[f'Q{r}'].font = F(11, True); bud[f'Q{r}'].alignment = CENTER
-bud['B26'] = ("Each channel's curve is set so the 2025 plan gives exactly Wave 1's return. Double a channel's spend and you get 41% more sign-ups, not double. "
-              "AP's real curves differ by channel, so their plan gained 12,300 sign-ups with them and about 600 here. The direction is the lesson.")
-bud['B26'].font = F(8, color=GREY, italic=True); bud['B26'].alignment = TOP; bud.merge_cells('B26:R27')
-bud.row_dimensions[26].height = 22; bud.row_dimensions[27].height = 22
-# right panel
-bud['T10'] = 'Extra sign-ups against the 2025 plan'; bud['T10'].font = F(9, color=GREY)
-bud['T11'] = '=O24-SUMPRODUCT(State!$D$51:$D$63,State!$C$51:$C$63)*1000/90'; bud['T11'].number_format = '+#,##0;-#,##0'; bud['T11'].font = F(24, True, NAVY)
-bud['T12'] = f'=IF(ABS(J24-G24)<=10,"Same total as 2025. Good.",IF(J24>G24,"Over budget by £"&TEXT(J24-G24,"#,##0")&"k. Take some back.","Under budget by £"&TEXT(G24-J24,"#,##0")&"k. Spend it."))'
-bud['T12'].font = F(11); bud['T12'].alignment = LEFT
-bud.conditional_formatting.add('T12', FormulaRule(formula=['ISNUMBER(SEARCH("Good",T12))'], font=Font(name='Arial', size=11, color=GREEN)))
-bud.conditional_formatting.add('T12', FormulaRule(formula=['NOT(ISNUMBER(SEARCH("Good",T12)))'], font=Font(name='Arial', size=11, color=AMBER)))
-bud['T13'] = '=IF(ABS(J24-G24)>10,"Fix the total first.",IF(T11>=1000,"✓ You found "&TEXT(T11,"#,##0")&" extra sign-ups on the same money. The most this table allows is about 2,000.","Move money from the weakest channel to the strongest. Find 1,000 more."))'
-bud['T13'].font = F(12); bud['T13'].alignment = TOP; bud.merge_cells('T13:Z15')
-bud.conditional_formatting.add('T13', FormulaRule(formula=['LEFT(T13,1)="✓"'], fill=FILL(GREENFILL), font=Font(name='Arial', size=12, color=GREEN)))
-bud.conditional_formatting.add('T13', FormulaRule(formula=['LEFT(T13,1)<>"✓"'], fill=FILL(AMBERFILL), font=Font(name='Arial', size=12, color=AMBER)))
-bud['T16'] = '=IF(T11>=1000,"Economists call this: marginal return","")'; bud['T16'].font = F(10, True, STEELBLUE)
-bud['T18'] = 'The average £1 returned £1.66. The last £1 returned 82p. Should we add £1m to the same plan?'
-bud['T18'].font = F(12, True, NAVY); bud['T18'].alignment = TOP; bud.merge_cells('T18:Z19')
-
-
+# ---- Chapter 8, the budget game, lives on the Race for Life tab from row 31 down
 def quiz_block(ws, first_row, q_index, opts, tick, nudge, badge):
     rows = [first_row, first_row + 1, first_row + 2]
     for r, (k, txt) in zip(rows, enumerate(opts, start=1)):
@@ -668,14 +614,95 @@ def quiz_block(ws, first_row, q_index, opts, tick, nudge, badge):
     return rows
 
 
-quiz_block(bud, 20, 8, ['Not yet: move money first', 'Yes, every £1 returns £1.66', 'No, cut everything'],
-           'Moving money between channels was worth about £1.1m before adding a single pound.',
-           'The average pound looks great. The next pound does not.', 'Marginal return')
+bud = play
+play.row_dimensions[30].height = 8
+play.row_dimensions[31].height = 8
+play.row_dimensions[32].height = 20
+play.row_dimensions[33].height = 7
+play.row_dimensions[34].height = 40
+play.row_dimensions[35].height = 48
+play.row_dimensions[36].height = 8
+bud['B32'] = '="Chapter 8  ·  The next pound"'; bud['B32'].font = F(11, True, GREY); bud.merge_cells('B32:M32')
+bud['T32'] = f'=REPT("★",{STARS})&REPT("☆",10-{STARS})'; bud['T32'].font = F(14, False, MAG)
+bud['T32'].alignment = Alignment(horizontal='right', vertical='center'); bud.merge_cells('T32:Z32')
+for k in range(24):
+    bud.cell(row=33, column=2 + k).fill = FILL('E9EDF3')
+bud.conditional_formatting.add('B33:Y33', FormulaRule(formula=[f'COLUMN()-1<={PROGRESS}'], fill=FILL(MAG)))
+bud['B34'] = 'Where should the next pound go?'; bud['B34'].font = F(20, True, NAVY); bud['B34'].alignment = LEFT; bud.merge_cells('B34:Z34')
+bud['B35'] = 'The third biscuit never tastes like the first: each extra £1 on a channel earns a little less. Tap − and + to move money. Keep the total. Beat the 2025 plan.'
+bud['B35'].font = F(13); bud['B35'].alignment = TOP; bud.merge_cells('B35:Z35')
+layout = [('B', 'F', 'Channel'), ('G', 'I', '2025 £k'), ('J', 'L', 'Your £k'), ('M', 'M', ''), ('N', 'N', ''), ('O', 'P', 'Sign-ups'), ('Q', 'R', 'Return per £1')]
+HR = 37
+bud.row_dimensions[HR].height = 22
+for a, b, h in layout:
+    bud.merge_cells(f'{a}{HR}:{b}{HR}'); c = bud[f'{a}{HR}']; c.value = h; c.font = F(10, True, 'FFFFFF'); c.fill = FILL(NAVY); c.alignment = CENTER
+first_ch = HR + 1
+for i, (nm, spend, roi, apv) in enumerate(channels, start=1):
+    r = HR + i
+    bud.row_dimensions[r].height = 24
+    bud.merge_cells(f'B{r}:F{r}'); bud[f'B{r}'] = nm; bud[f'B{r}'].font = F(11); bud[f'B{r}'].alignment = LEFT
+    bud.merge_cells(f'G{r}:I{r}'); bud[f'G{r}'] = f'={ST}$C${50 + i}'; bud[f'G{r}'].number_format = '#,##0'; bud[f'G{r}'].font = F(11, color=GREY); bud[f'G{r}'].alignment = CENTER
+    bud.merge_cells(f'J{r}:L{r}'); bud[f'J{r}'] = f'=IF({BUDMODE}=1,{ST}$E${50 + i},{BUD(i)})'; bud[f'J{r}'].number_format = '#,##0'; bud[f'J{r}'].font = F(11, True, NAVY); bud[f'J{r}'].alignment = CENTER
+    bud[f'M{r}'] = '−'; bud[f'N{r}'] = '+'
+    for cc in 'MN':
+        bud[f'{cc}{r}'].font = F(13, True, 'FFFFFF'); bud[f'{cc}{r}'].fill = FILL(NAVY); bud[f'{cc}{r}'].alignment = CENTER
+    bud.merge_cells(f'O{r}:P{r}'); bud[f'O{r}'] = f'=IF(J{r}<=0,0,({ST}$D${50 + i}*{ST}$C${50 + i}*1000/90)/SQRT({ST}$C${50 + i})*SQRT(J{r}))'
+    bud[f'O{r}'].number_format = '#,##0'; bud[f'O{r}'].font = F(11); bud[f'O{r}'].alignment = CENTER
+    bud.merge_cells(f'Q{r}:R{r}'); bud[f'Q{r}'] = f'=IF(J{r}<=0,0,O{r}*{POUND}/1000/J{r})'
+    bud[f'Q{r}'].number_format = '"£"0.00'; bud[f'Q{r}'].font = F(11); bud[f'Q{r}'].alignment = CENTER
+    for cc in 'BGJOQ':
+        bud[f'{cc}{r}'].border = Border(bottom=thin)
+last_ch = HR + len(channels)
+bud.conditional_formatting.add(f'J{first_ch}:J{last_ch}', DataBarRule(start_type='num', start_value=0, end_type='num', end_value=1600, color=CYAN))
+TR = last_ch + 1
+bud.row_dimensions[TR].height = 22
+bud.merge_cells(f'B{TR}:F{TR}'); bud[f'B{TR}'] = 'Total'; bud[f'B{TR}'].font = F(11, True)
+bud.merge_cells(f'G{TR}:I{TR}'); bud[f'G{TR}'] = f'=SUM(G{first_ch}:G{last_ch})'; bud[f'G{TR}'].number_format = '#,##0'; bud[f'G{TR}'].font = F(11, True); bud[f'G{TR}'].alignment = CENTER
+bud.merge_cells(f'J{TR}:L{TR}'); bud[f'J{TR}'] = f'=SUM(J{first_ch}:J{last_ch})'; bud[f'J{TR}'].number_format = '#,##0'; bud[f'J{TR}'].font = F(11, True, NAVY); bud[f'J{TR}'].alignment = CENTER
+bud.merge_cells(f'O{TR}:P{TR}'); bud[f'O{TR}'] = f'=SUM(O{first_ch}:O{last_ch})'; bud[f'O{TR}'].number_format = '#,##0'; bud[f'O{TR}'].font = F(11, True); bud[f'O{TR}'].alignment = CENTER
+bud.merge_cells(f'Q{TR}:R{TR}'); bud[f'Q{TR}'] = f'=O{TR}*{POUND}/1000/J{TR}'; bud[f'Q{TR}'].number_format = '"£"0.00'; bud[f'Q{TR}'].font = F(11, True); bud[f'Q{TR}'].alignment = CENTER
+NR = TR + 1
+bud[f'B{NR}'] = ("Each channel's curve is set so the 2025 plan gives exactly Wave 1's return. Double a channel's spend and you get 41% more sign-ups, not double. "
+                 "AP's real curves differ by channel, so their plan gained 12,300 sign-ups with them and about 600 here. The direction is the lesson.")
+bud[f'B{NR}'].font = F(8, color=GREY, italic=True); bud[f'B{NR}'].alignment = TOP; bud.merge_cells(f'B{NR}:R{NR + 1}')
+bud.row_dimensions[NR].height = 20; bud.row_dimensions[NR + 1].height = 20
+# right panel
+bud[f'T{HR}'] = 'Extra sign-ups against the 2025 plan'; bud[f'T{HR}'].font = F(9, color=GREY)
+bud[f'T{HR + 1}'] = f'=O{TR}-SUMPRODUCT(State!$D$51:$D$63,State!$C$51:$C$63)*1000/90'; bud[f'T{HR + 1}'].number_format = '+#,##0;-#,##0'; bud[f'T{HR + 1}'].font = F(24, True, NAVY)
+bud[f'T{HR + 2}'] = f'=IF(ABS(J{TR}-G{TR})<=10,"Same total as 2025. Good.",IF(J{TR}>G{TR},"Over budget by £"&TEXT(J{TR}-G{TR},"#,##0")&"k. Take some back.","Under budget by £"&TEXT(G{TR}-J{TR},"#,##0")&"k. Spend it."))'
+bud[f'T{HR + 2}'].font = F(11); bud[f'T{HR + 2}'].alignment = LEFT
+bud.conditional_formatting.add(f'T{HR + 2}', FormulaRule(formula=[f'ISNUMBER(SEARCH("Good",T{HR + 2}))'], font=Font(name='Arial', size=11, color=GREEN)))
+bud.conditional_formatting.add(f'T{HR + 2}', FormulaRule(formula=[f'NOT(ISNUMBER(SEARCH("Good",T{HR + 2})))'], font=Font(name='Arial', size=11, color=AMBER)))
+FB = HR + 3
+bud[f'T{FB}'] = f'=IF(ABS(J{TR}-G{TR})>10,"Fix the total first.",IF(T{HR + 1}>=1000,"✓ You found "&TEXT(T{HR + 1},"#,##0")&" extra sign-ups on the same money. The most this table allows is about 2,000.","Move money from the weakest channel to the strongest. Find 1,000 more."))'
+bud[f'T{FB}'].font = F(12); bud[f'T{FB}'].alignment = TOP; bud.merge_cells(f'T{FB}:Z{FB + 2}')
+bud.conditional_formatting.add(f'T{FB}', FormulaRule(formula=[f'LEFT(T{FB},1)="✓"'], fill=FILL(GREENFILL), font=Font(name='Arial', size=12, color=GREEN)))
+bud.conditional_formatting.add(f'T{FB}', FormulaRule(formula=[f'LEFT(T{FB},1)<>"✓"'], fill=FILL(AMBERFILL), font=Font(name='Arial', size=12, color=AMBER)))
+bud[f'T{FB + 3}'] = f'=IF(T{HR + 1}>=1000,"Economists call this: marginal return","")'; bud[f'T{FB + 3}'].font = F(10, True, STEELBLUE)
+QQ = FB + 5
+bud[f'T{QQ}'] = 'The average £1 returned £1.66. The last £1 returned 82p. Should we add £1m to the same plan?'
+bud[f'T{QQ}'].font = F(12, True, NAVY); bud[f'T{QQ}'].alignment = TOP; bud.merge_cells(f'T{QQ}:Z{QQ + 1}')
+BUDGET_QUIZ_ROWS = quiz_block(bud, QQ + 2, 8, ['Not yet: move money first', 'Yes, every £1 returns £1.66', 'No, cut everything'],
+                              'Moving money between channels was worth about £1.1m before adding a single pound.',
+                              'The average pound looks great. The next pound does not.', 'Marginal return')
+BR = max(NR + 2, QQ + 2 + 6) + 1
+bud.row_dimensions[BR].height = 34
+def bbtn(rng_, text, fill, fc='FFFFFF', size=13):
+    bud.merge_cells(rng_)
+    c = bud[rng_.split(':')[0]]; c.value = text; c.font = F(size, True, fc); c.fill = FILL(fill); c.alignment = CENTER
+    for row in bud[rng_]:
+        for cell in row:
+            cell.border = BOX
+bbtn(f'B{BR}:E{BR}', '◀  Back', 'E9EDF3', NAVY)
+bbtn(f'G{BR}:J{BR}', f'=IF({BUDMODE}=1,"Back to my plan","Show AP\'s plan")', 'E9EDF3', NAVY)
+bbtn(f'L{BR}:O{BR}', 'Reset plan', 'E9EDF3', NAVY)
+bbtn(f'T{BR}:Z{BR}', 'Next  ▶', MAG)
+print('budget block rows: header', HR, 'channels', first_ch, 'to', last_ch, 'total', TR, 'quiz', BUDGET_QUIZ_ROWS, 'buttons', BR)
 
-# ---- Long game
-lg = wb.create_sheet('Long game')
+# ---- Brand
+lg = wb.create_sheet('Brand')
 lg.sheet_properties.codeName = 'Sheet3'
-btn = app_frame(lg, CYAN, '="Chapter 9  ·  The long game"', '="Some of today\'s sign-ups come from adverts people saw years ago"',
+btn = app_frame(lg, CYAN, '="Chapter 9  ·  Brand"', '="Some of today\'s sign-ups come from adverts people saw years ago"',
                 '="The pink line is brand consideration: the share of people who would consider supporting us. It moves slowly. Nearly a fifth of it was built by past adverts."')
 stats = [('18.8%', 'of today\'s consideration comes from past adverts. That stock is our brand equity.'),
          ('+0.4 points', 'of consideration for every extra £1m of long-term media, against a drift of 0.25 points a year.'),
@@ -810,12 +837,12 @@ rn.column_dimensions['B'].width = 26; rn.column_dimensions['C'].width = 90
 rn['B2'] = 'Room notes: running the game with a team in 45 minutes'; rn['B2'].font = F(16, True, NAVY)
 rn['B3'] = 'For the person leading. Unhide from the sheet list. The answers are here, so do not share the screen with this tab open.'; rn['B3'].font = F(10, italic=True)
 notes = [
-    ('0 to 5', 'Open Play on the big screen. Chapter 1, one person tapping. Ask the room what made the spikes before anyone taps.'),
+    ('0 to 5', 'Open the Race for Life tab on the big screen. Chapter 1, one person tapping. Ask the room what made the spikes before anyone taps.'),
     ('5 to 15', 'Chapters 2 and 3 together. Ask for a show of hands before each number: higher or lower than a thousand? The base surprises people. Let it.'),
     ('15 to 25', 'Chapter 4. Ask the room to guess the memory before you touch it. Most say 20%. Show what 80% does. Name adstock only after the line fits.'),
     ('25 to 32', 'Chapter 5. Add the halo, then read the 42% step out loud and stop. Let the room say what it means for next year.'),
     ('32 to 38', 'Chapter 6 in pairs on laptops. The point is the catch, not the numbers. Ask: which channel are you least sure of, and why?'),
-    ('38 to 45', 'Chapter 8 as a race: first to 1,000 extra sign-ups on the same money. Close on average versus last pound. Chapters 9 and 10 are homework.'),
+    ('38 to 45', 'Chapter 8 as a race: first to 1,000 extra sign-ups on the same money. Close on average versus last pound. The Brand and Giving tabs are homework.'),
     ('Answer key', f'Base {ans_base:,.0f}. Brake {ans_brake:,.0f}. Sale {ans_sale:,.0f}. Adverts {ans_rfl:.1f} per £1,000, memory {mem_rfl}%. Halo {ans_halo:.2f} per £1,000. Channels: ' + ', '.join(f'{g[0]} {k:.1f}' for g, k in zip(groups, ch_ans)) + '. Every quiz answer is A.'),
     ('If asked "is this just correlation?"', 'Partly, and AP say so. Three things make it more: it controls for everything at once, it is tested on weeks it never saw, and channels that stopped (Race for Life TV after 2024) let it see what happens without them.'),
     ('If asked "the halo felt too big"', 'It did, and AP rebuilt it. They now measure Committed Giving as one block. The halo fell and is still 5% of 2025 sign-ups and 9,139 of the 2025 decline.'),
@@ -829,7 +856,7 @@ for k, (a, b) in enumerate(notes):
 rn.sheet_state = 'hidden'
 
 # ---- order and codenames
-order = ['Play', 'Budget', 'Long game', 'Giving', 'Finish', 'Words', ENG, STEPS, STATE, 'Room notes', ANS]
+order = ['Race for Life', 'Brand', 'Giving', 'Finish', 'Words', ENG, STEPS, STATE, 'Room notes', ANS]
 wb._sheets = [wb[n] for n in order]
 for k, name in enumerate(order, start=1):
     wb[name].sheet_properties.codeName = f'Sheet{k}'
@@ -841,7 +868,7 @@ for ws in wb.worksheets:
     ws.oddHeader.left.text = 'CRUK CONFIDENTIAL, INTERNAL USE ONLY'
     ws.oddFooter.left.text = 'The Econometrics Game v3'
     ws.oddFooter.right.text = 'Andrew Rajanathan, CRUK M&&D'
-    if ws.title in ('Play', 'Budget', 'Long game', 'Giving', 'Finish'):
+    if ws.title in ('Race for Life', 'Brand', 'Giving', 'Finish'):
         ws.sheet_properties.pageSetUpPr.fitToPage = True
         ws.page_setup.fitToWidth = 1
         ws.page_setup.fitToHeight = 1
